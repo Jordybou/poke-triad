@@ -1,70 +1,30 @@
-# Getting Started with Create React App
+# Poké-Triad
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+Un jeu de cartes inspiré de Triple Triad et de l’univers Pokémon (1ère génération), développé en React.
 
-## Available Scripts
+---
 
-In the project directory, you can run:
+## ⚙️ Fonctionnalités actuelles
 
-### `npm start`
+- 🎴 Génération automatique de 2 decks de 5 cartes Pokémon chacun (joueur et ennemi) via la PokéAPI.
+- 🧠 Chaque carte possède :
+  - Un nom, une image, un type (ex : feu 🔥),
+  - 4 valeurs directionnelles (haut, bas, gauche, droite) calculées à partir des **stats de base Pokémon**.
+- 🕹️ Plateau 3x3 interactif au centre.
+- 🔄 Système de tour par tour avec une IA ennemie simple.
+- 🎯 Mécanique de capture des cartes adjacentes selon les règles de Triple Triad.
+- 🧮 Compteur de points en direct : `Joueur 5 - 4 Ennemi`
+- ✅ Fin de partie détectée automatiquement (quand 9 cartes sont posées).
+- 🏆 En cas de victoire :
+  - Une fenêtre s’ouvre avec les 5 cartes initiales de l’ennemi,
+  - Le joueur peut **en capturer une**,
+  - Un message s’affiche : "Bravo, vous avez attrapé [Nom] !".
+- 🔁 Bouton "Rejouer" pour relancer une partie proprement.
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+---
 
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
+## 📦 Installation
 
-### `npm test`
-
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
-
-### `npm run build`
-
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
-
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
-
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
-
-### `npm run eject`
-
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
-
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
-
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
-
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
-
-## Learn More
-
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
-
-To learn React, check out the [React documentation](https://reactjs.org/).
-
-### Code Splitting
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
-
-### Analyzing the Bundle Size
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
-
-### Making a Progressive Web App
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
-
-### Advanced Configuration
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
-
-### Deployment
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
-
-### `npm run build` fails to minify
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+```bash
+npm install
+npm start
