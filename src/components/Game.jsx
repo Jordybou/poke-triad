@@ -2,8 +2,10 @@ import React, { useEffect, useState } from 'react';
 import Card from './Card';
 import { generateDeck } from '../utils/generateDeck';
 import '../styles/Board.css';
+import { useDispatch } from 'react-redux';
+import { addToPokedex } from '../redux/slices/pokedexSlice';
 
-export default function Game() {
+export default function Game({ setView }) {
     const [playerDeck, setPlayerDeck] = useState([]);
     const [enemyDeck, setEnemyDeck] = useState([]);
     const [board, setBoard] = useState(Array(3).fill(null).map(() => Array(3).fill(null)));
@@ -15,16 +17,10 @@ export default function Game() {
     const [showCapture, setShowCapture] = useState(false);
     const [initialEnemyDeck, setInitialEnemyDeck] = useState([]);
 
-    useEffect(() => {
-        async function loadDecks() {
-            const player = await generateDeck();
-            const enemy = await generateDeck();
-            setPlayerDeck(player);
-            setEnemyDeck(enemy);
-            setInitialEnemyDeck(enemy); // copie du deck initial
-        }
+    const dispatch = useDispatch();
 
-        loadDecks();
+    useEffect(() => {
+        startNewGame();
     }, []);
 
     const handleSelectCard = (card, index) => {
@@ -144,8 +140,38 @@ export default function Game() {
         }
     };
 
+    const startNewGame = async () => {
+        const player = await generateDeck();
+        const enemy = await generateDeck();
+        setPlayerDeck(player);
+        setEnemyDeck(enemy);
+        setInitialEnemyDeck(enemy);
+        setBoard(Array(3).fill(null).map(() => Array(3).fill(null)));
+        setSelectedCard(null);
+        setTurn('player');
+        setGameOver(false);
+        setResult('');
+        setCapturedCard(null);
+        setShowCapture(false);
+    };
+
     return (
         <div style={{ textAlign: 'center', marginTop: '20px' }}>
+            <button
+                onClick={() => setView('home')}
+                style={{
+                    position: 'absolute',
+                    top: 20,
+                    left: 20,
+                    fontSize: '24px',
+                    background: 'none',
+                    border: 'none',
+                    cursor: 'pointer'
+                }}
+                title="Retour au menu"
+            >
+                ⬅️
+            </button>
             <h1>Poké-Triad</h1>
             <h3>Tour actuel : {turn === 'player' ? '👤 Joueur' : '💻 Ennemi'}</h3>
 
@@ -238,7 +264,7 @@ export default function Game() {
                         boxShadow: '0 0 20px black'
                     }}>
                         <h2>{result}</h2>
-                        <button onClick={() => window.location.reload()}>Rejouer</button>
+                        <button onClick={startNewGame}>Rejouer</button>
                     </div>
                 </div>
             )}
@@ -267,6 +293,7 @@ export default function Game() {
                                 <div
                                     key={index}
                                     onClick={() => {
+                                        dispatch(addToPokedex(card));
                                         setCapturedCard(card);
                                         setShowCapture(false);
                                         setGameOver(true);

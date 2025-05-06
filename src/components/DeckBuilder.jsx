@@ -1,3 +1,22 @@
-export default function Game() {
-    return <h1>Bienvenue dans Poké-Triad</h1>;
-  }
+export default function Deck({ setView }) {
+  return (
+    <div>
+      <button
+        onClick={() => setView('home')}
+        style={{
+          position: 'absolute',
+          top: 20,
+          left: 20,
+          fontSize: '24px',
+          background: 'none',
+          border: 'none',
+          cursor: 'pointer'
+        }}
+        title="Retour au menu"
+      >
+        ⬅️
+      </button>
+      <h1>Bienvenue dans Decks</h1>
+    </div>
+  );
+}

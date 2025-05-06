@@ -1,29 +1,24 @@
-import React from 'react';
-import { BrowserRouter as Router, Routes, Route, Link } from 'react-router-dom';
+import React, { useState } from 'react';
 import Game from './components/Game';
-import DeckBuilder from './components/DeckBuilder';
-import Pokedex from './components/Pokedex';
-import Rules from './components/Rules';
-import Quit from './components/Quit';
+import Home from './components/Home';
+import Pokedex from './components/Pokedex'; // vide pour l'instant
+import Rules from './components/Rules';     // vide pour l'instant
+import DeckBuilder from './components/DeckBuilder'; // vide pour l'instant
+import Quit from './components/Quit';       // vide pour l'instant
 
-export default function App() {
+function App() {
+  const [view, setView] = useState('home');
+
   return (
-    <Router>
-      <div className="menu">
-        <Link to="/">JOUER</Link> |{' '}
-        <Link to="/decks">DECKS</Link> |{' '}
-        <Link to="/pokedex">POKEDEX</Link> |{' '}
-        <Link to="/rules">REGLES</Link> |{' '}
-        <Link to="/quit">QUITTER</Link>
-      </div>
-
-      <Routes>
-        <Route path="/" element={<Game />} />
-        <Route path="/decks" element={<DeckBuilder />} />
-        <Route path="/pokedex" element={<Pokedex />} />
-        <Route path="/rules" element={<Rules />} />
-        <Route path="/quit" element={<Quit />} />
-      </Routes>
-    </Router>
+    <>
+      {view === 'home' && <Home setView={setView} />}
+      {view === 'game' && <Game setView={setView} />}
+      {view === 'decks' && <DeckBuilder setView={setView} />}
+      {view === 'pokedex' && <Pokedex setView={setView} />}
+      {view === 'rules' && <Rules setView={setView} />}
+      {view === 'quit' && <Quit />}
+    </>
   );
 }
+
+export default App;
