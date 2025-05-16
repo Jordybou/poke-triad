@@ -4,6 +4,9 @@ import { generateDeck } from '../utils/generateDeck';
 import '../styles/Board.css';
 import { useDispatch } from 'react-redux';
 import { addToPokedex } from '../redux/slices/pokedexSlice';
+import { useSelector } from 'react-redux';
+import { defaultDeck } from '../utils/defaultDeck';
+import { checkCapture } from '../utils/logic';
 
 export default function Game({ setView }) {
     const [playerDeck, setPlayerDeck] = useState([]);
@@ -16,8 +19,15 @@ export default function Game({ setView }) {
     const [capturedCard, setCapturedCard] = useState(null);
     const [showCapture, setShowCapture] = useState(false);
     const [initialEnemyDeck, setInitialEnemyDeck] = useState([]);
+    const [elementalGrid, setElementalGrid] = useState(Array(3).fill(null).map(() => Array(3).fill(null)));
 
     const dispatch = useDispatch();
+
+    const playerCustomDeck = useSelector(state => state.playerDeck.deck);
+    const activeRules = useSelector(state => state.rules.enabledRules);
+    const activeDeck = useSelector(state =>
+        state.playerDeck.decks.find(deck => deck.id === state.playerDeck.activeDeckId)
+    );
 
     useEffect(() => {
         startNewGame();
@@ -25,29 +35,51 @@ export default function Game({ setView }) {
 
     const handleSelectCard = (card, index) => {
         if (turn !== 'player') return;
+
+        const isOrderActive = activeRules.includes('Ordre');
+
+        if (isOrderActive) {
+            if (index !== 0) return; // Seule la première carte est jouable
+        }
+
         setSelectedCard({ ...card, index });
     };
 
     const handleCellClick = (row, col) => {
-        if (turn !== 'player') return;
         if (board[row][col] !== null) return;
-        if (!selectedCard) return;
+        if (!selectedCard || turn !== 'player') return;
+
+        const elementalType = elementalGrid[row][col];
+        let adjustedCard = { ...selectedCard, owner: 'player' };
+
+        if (activeRules.includes("Élémental") && elementalType) {
+            const match = selectedCard.element === elementalType;
+
+            adjustedCard = {
+                ...adjustedCard,
+                values: Object.fromEntries(
+                    Object.entries(selectedCard.values).map(([dir, val]) => [
+                        dir,
+                        Math.max(1, Math.min(10, val + (match ? 1 : -1)))
+                    ])
+                )
+            };
+        }
 
         const newBoard = [...board.map(row => [...row])];
-        newBoard[row][col] = { ...selectedCard, owner: 'player' };
-        const boardAfterCapture = checkCapture(newBoard, row, col, { ...selectedCard, owner: 'player' });
+        newBoard[row][col] = adjustedCard;
+        const boardAfterCapture = checkCapture(newBoard, row, col, adjustedCard, activeRules);
 
         const newDeck = [...playerDeck];
         newDeck.splice(selectedCard.index, 1);
 
-        setBoard(newBoard);
+        setBoard(boardAfterCapture);
         setPlayerDeck(newDeck);
         setSelectedCard(null);
         setTurn('enemy');
-        setBoard(boardAfterCapture);
         checkEndGame(boardAfterCapture);
 
-        setTimeout(() => enemyPlay(newBoard), 1000);
+        setTimeout(() => enemyPlay(boardAfterCapture), 1000);
     };
 
     const enemyPlay = (currentBoard) => {
@@ -67,50 +99,12 @@ export default function Game({ setView }) {
 
         const newBoard = [...currentBoard.map(row => [...row])];
         newBoard[row][col] = { ...card, owner: 'enemy' };
-        const boardAfterCapture = checkCapture(newBoard, row, col, { ...card, owner: 'enemy' });
+        const boardAfterCapture = checkCapture(newBoard, row, col, { ...card, owner: 'enemy' }, activeRules);
 
         setBoard(boardAfterCapture);
         checkEndGame(boardAfterCapture);
         setEnemyDeck(enemyDeck.slice(1));
         setTurn('player');
-    };
-
-    const checkCapture = (board, row, col, placedCard) => {
-        const directions = [
-            { dr: -1, dc: 0, side: 'top', opposite: 'bottom' },
-            { dr: 1, dc: 0, side: 'bottom', opposite: 'top' },
-            { dr: 0, dc: -1, side: 'left', opposite: 'right' },
-            { dr: 0, dc: 1, side: 'right', opposite: 'left' },
-        ];
-
-        const newBoard = [...board.map(row => [...row])];
-
-        directions.forEach(({ dr, dc, side, opposite }) => {
-            const newRow = row + dr;
-            const newCol = col + dc;
-
-            if (
-                newRow >= 0 && newRow < 3 &&
-                newCol >= 0 && newCol < 3 &&
-                newBoard[newRow][newCol]
-            ) {
-                const adjacentCard = newBoard[newRow][newCol];
-
-                if (adjacentCard.owner !== placedCard.owner) {
-                    const placedValue = placedCard.values[side];
-                    const adjacentValue = adjacentCard.values[opposite];
-
-                    if (placedValue > adjacentValue) {
-                        newBoard[newRow][newCol] = {
-                            ...adjacentCard,
-                            owner: placedCard.owner
-                        };
-                    }
-                }
-            }
-        });
-
-        return newBoard;
     };
 
     const countOwnedCards = (board) => {
@@ -141,9 +135,9 @@ export default function Game({ setView }) {
     };
 
     const startNewGame = async () => {
-        const player = await generateDeck();
+        const player = playerCustomDeck.length === 5 ? playerCustomDeck : defaultDeck;
         const enemy = await generateDeck();
-        setPlayerDeck(player);
+        setPlayerDeck(activeDeck?.cards || []);
         setEnemyDeck(enemy);
         setInitialEnemyDeck(enemy);
         setBoard(Array(3).fill(null).map(() => Array(3).fill(null)));
@@ -153,6 +147,27 @@ export default function Game({ setView }) {
         setResult('');
         setCapturedCard(null);
         setShowCapture(false);
+        setElementalGrid(generateElementalGrid());
+    };
+
+    const generateElementalGrid = () => {
+        const elements = ['fire', 'water', 'grass', 'electric', 'ice', 'psychic', 'ghost', 'rock'];
+        const count = Math.floor(Math.random() * 4) + 2;
+
+        const positions = new Set();
+        while (positions.size < count) {
+            const row = Math.floor(Math.random() * 3);
+            const col = Math.floor(Math.random() * 3);
+            positions.add(`${row},${col}`);
+        }
+
+        const grid = Array(3).fill(null).map(() => Array(3).fill(null));
+        for (let pos of positions) {
+            const [r, c] = pos.split(',').map(Number);
+            grid[r][c] = elements[Math.floor(Math.random() * elements.length)];
+        }
+
+        return grid;
     };
 
     return (
@@ -180,26 +195,42 @@ export default function Game({ setView }) {
                 return <h3>Score : 🟦 Joueur {player} - {enemy} Ennemi 🟥</h3>;
             })()}
 
+            {activeRules.length > 0 && (
+                <div style={{ marginTop: '10px' }}>
+                    <strong>Règles actives :</strong>
+                    <ul style={{ listStyle: 'none', padding: 0 }}>
+                        {activeRules.map((rule, index) => (
+                            <li key={index}>📜 {rule}</li>
+                        ))}
+                    </ul>
+                </div>
+            )}
+
             <div style={{ display: 'flex', justifyContent: 'space-around', alignItems: 'flex-start' }}>
                 {/* Deck joueur */}
                 <div>
                     <h2>Deck Joueur</h2>
-                    {playerDeck.map((card, index) => (
-                        <div
-                            key={`player-${index}`}
-                            onClick={() => handleSelectCard(card, index)}
-                            className={selectedCard?.index === index ? 'selected' : ''}
-                        >
-                            <Card
-                                name={card.name}
-                                image={card.image}
-                                element={card.element}
-                                values={card.values}
-                                owner="player"
-                                isSelected={selectedCard?.index === index}
-                            />
-                        </div>
-                    ))}
+                    {playerDeck.map((card, index) => {
+                        const isOrderActive = activeRules.includes('Ordre');
+                        const isDisabled = isOrderActive && index !== 0;
+
+                        return (
+                            <div
+                                key={`player-${index}`}
+                                onClick={() => !isDisabled && handleSelectCard(card, index)}
+                                className={`${selectedCard?.index === index ? 'selected' : ''} ${isDisabled ? 'disabled' : ''}`}
+                            >
+                                <Card
+                                    name={card.name}
+                                    image={card.image}
+                                    element={card.element}
+                                    values={card.values}
+                                    owner="player"
+                                    isSelected={selectedCard?.index === index}
+                                />
+                            </div>
+                        );
+                    })}
                 </div>
 
                 {/* Plateau */}
@@ -229,17 +260,51 @@ export default function Game({ setView }) {
                 </div>
 
                 {/* Deck ennemi */}
-                <div>
+                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
                     <h2>Deck Ennemi</h2>
                     {enemyDeck.map((card, index) => (
-                        <Card
-                            key={`enemy-${index}`}
-                            name={card.name}
-                            image={card.image}
-                            element={card.element}
-                            values={card.values}
-                            owner="enemy"
-                        />
+                        <div key={index} style={{ marginBottom: '10px' }}>
+                            {activeRules.includes('Open') ? (
+                                <>
+                                    <div
+                                        style={{
+                                            backgroundColor: '#f3f3f3',
+                                            borderRadius: '4px',
+                                            padding: '4px 8px',
+                                            marginBottom: '4px',
+                                            fontWeight: 'bold',
+                                            width: '120px',
+                                            textAlign: 'center'
+                                        }}
+                                    >
+                                        {card.name}
+                                    </div>
+                                    <Card
+                                        name={card.name}
+                                        image={card.image}
+                                        element={card.element}
+                                        values={card.values}
+                                        owner="enemy"
+                                    />
+                                </>
+                            ) : (
+                                <>
+                                    {/* Espace vide pour nom de carte */}
+                                    <div style={{ height: '18px', width: '120px', marginBottom: '4px' }} />
+                                    <div
+                                        style={{
+                                            width: '120px',
+                                            height: '150px',
+                                            backgroundImage: 'url(/images/card-back.png)',
+                                            backgroundSize: 'cover',
+                                            backgroundPosition: 'center',
+                                            borderRadius: '8px',
+                                            boxShadow: '0 0 4px black'
+                                        }}
+                                    />
+                                </>
+                            )}
+                        </div>
                     ))}
                 </div>
             </div>
@@ -265,6 +330,7 @@ export default function Game({ setView }) {
                     }}>
                         <h2>{result}</h2>
                         <button onClick={startNewGame}>Rejouer</button>
+                        <button onClick={() => setView('home')}>Retour au menu</button>
                     </div>
                 </div>
             )}

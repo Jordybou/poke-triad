@@ -10,7 +10,7 @@ const ELEMENT_ICONS = {
   normal: '⭐',
   poison: '☠️',
   ground: '🌍',
-  rock: '🪨',
+  rock: '⛰️',
   psychic: '🔮',
   ice: '❄️',
   dragon: '🐉',
