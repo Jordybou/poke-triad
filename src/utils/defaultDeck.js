@@ -1,32 +1,26 @@
-export const defaultDeck = [
-    {
-      name: 'pikachu',
-      image: 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/25.png',
-      element: 'electric',
-      values: { top: 4, right: 6, bottom: 3, left: 5 },
-    },
-    {
-      name: 'bulbasaur',
-      image: 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/1.png',
-      element: 'grass',
-      values: { top: 5, right: 5, bottom: 4, left: 3 },
-    },
-    {
-      name: 'charmander',
-      image: 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/4.png',
-      element: 'fire',
-      values: { top: 6, right: 4, bottom: 3, left: 5 },
-    },
-    {
-      name: 'squirtle',
-      image: 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/7.png',
-      element: 'water',
-      values: { top: 3, right: 6, bottom: 4, left: 5 },
-    },
-    {
-      name: 'arcanine',
-      image: 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/59.png',
-      element: 'fire',
-      values: { top: 7, right: 6, bottom: 5, left: 7 },
-    },
-  ];
+import axios from 'axios';
+import { generateCardValuesFromStats } from statUtils.js;
+
+const FIXED_IDS = [25, 4, 7, 1, 59]; // Pikachu, Salamèche, Carapuce, Bulbizarre, Arcanin
+
+export async function generateDefaultDeck() {
+  const cards = [];
+
+  for (let id of FIXED_IDS) {
+    try {
+      const res = await axios.get(`https://pokeapi.co/api/v2/pokemon/${id}`);
+      const data = res.data;
+
+      cards.push({
+        name: data.name,
+        image: data.sprites.front_default,
+        element: data.types[0].type.name,
+        values: generateCardValuesFromStats(data.stats)
+      });
+    } catch (e) {
+      console.error(`Erreur récupération Pokémon ${id}`, e);
+    }
+  }
+
+  return cards;
+}

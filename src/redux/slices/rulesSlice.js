@@ -1,8 +1,17 @@
 import { createSlice } from '@reduxjs/toolkit';
-import { BADGES } from '../../utils/badges';
 
 const initialState = {
   enabledRules: [],
+  unlockedRules: [
+    'Combo',
+    'Plus',
+    'Identique',
+    'Mur',
+    'Ordre',
+    'Aléatoire',
+    'Élémental',
+    'Open'
+  ],
 };
 
 export const rulesSlice = createSlice({
@@ -24,4 +33,5 @@ export const rulesSlice = createSlice({
 });
 
 export const { toggleRule, resetRules } = rulesSlice.actions;
+export const ALL_RULES = ['Mur', 'Combo', 'Identique', 'Plus', 'Open', 'Élémental', 'Ordre', 'Aléatoire'];
 export default rulesSlice.reducer;

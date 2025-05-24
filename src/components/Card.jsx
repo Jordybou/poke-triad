@@ -1,51 +1,33 @@
-import React from 'react';
-import './Card.css';
+import '../styles/Card.css';
 
 const ELEMENT_ICONS = {
-  grass: '🌿',
-  fire: '🔥',
-  water: '💧',
-  electric: '⚡',
-  bug: '🐞',
-  normal: '⭐',
-  poison: '☠️',
-  ground: '🌍',
-  rock: '⛰️',
-  psychic: '🔮',
-  ice: '❄️',
-  dragon: '🐉',
-  ghost: '👻',
-  fighting: '🥊',
-  flying: '🕊️',
-  dark: '🌑',
-  steel: '⚙️',
-  fairy: '✨',
+  fire: '🔥', water: '💧', grass: '🌿',
+  electric: '⚡', ice: '❄️', psychic: '🔮',
+  rock: '⛰️', ghost: '👻', bug: '🐞',
+  dragon: '🐉', fairy: '✨', dark: '🌑',
+  steel: '⚙️', normal: '⭐', poison: '☠️',
+  ground: '🌍', flying: '🕊️', fighting: '🥊'
 };
 
-export default function Card({ name, image, element, values, owner = "player", onBoard = false, isSelected = false }) {
-  const borderClass = onBoard
-    ? owner === "enemy"
-      ? "cell-enemy"
-      : "cell-player"
-    : owner === "enemy"
-      ? "card-enemy"
-      : "card-player";
-
-  const boardClass = onBoard ? "card-on-board" : "";
-
+export default function Card({ name, image, values, element, owner, isSelected, onBoard }) {
   return (
-    <div className={`card-wrapper ${onBoard ? "on-board" : ""} ${isSelected ? "selected" : ""} ${borderClass}`}>
-      {!onBoard && <div className="card-name">{name}</div>}
-      <div className={`card ${boardClass}`}>
-        <div className="card-values">
-          <div className="top">{values.top}</div>
-          <div className="left">{values.left}</div>
-          <div className="right">{values.right}</div>
-          <div className="bottom">{values.bottom}</div>
-        </div>
+    <div className={`card ${owner} ${isSelected ? 'selected' : ''} ${onBoard ? 'on-board' : ''}`}>
+      <div className="card-name">{name}</div>
+
+      {image ? (
         <img className="card-image" src={image} alt={name} />
-        <div className="card-element">{ELEMENT_ICONS[element] || '?'}</div>
+      ) : (
+        <div className="card-image placeholder">🔲</div>
+      )}
+
+      <div className="card-values">
+        <span className="value top">{values?.top}</span>
+        <span className="value right">{values?.right}</span>
+        <span className="value bottom">{values?.bottom}</span>
+        <span className="value left">{values?.left}</span>
       </div>
+
+      <div className="card-element">{element}</div>
     </div>
   );
 }

@@ -1,15 +1,15 @@
-import React from 'react';
+import '../styles/Home.css';
 
 export default function Home({ setView }) {
   return (
-    <div style={{ textAlign: 'center', paddingTop: '80px' }}>
-      <h1>🎴 Poké-Triad</h1>
-      <div style={{ marginTop: '40px', display: 'flex', flexDirection: 'column', gap: '20px' }}>
-        <button onClick={() => setView('game')}>▶️ JOUER</button>
-        <button onClick={() => setView('decks')}>🧩 DECKS</button>
-        <button onClick={() => setView('pokedex')}>📘 POKEDEX</button>
-        <button onClick={() => setView('rules')}>📜 RÈGLES</button>
-        <button onClick={() => setView('quit')}>❌ QUITTER</button>
+    <div className="home-container">
+      <h1 className="home-title">🎮 Poké-Triad</h1>
+      <div className="home-menu">
+        <button onClick={() => setView('game')}>▶️ Jouer</button>
+        <button onClick={() => setView('decks')}>🃏 Decks</button>
+        <button onClick={() => setView('pokedex')}>📘 Pokédex</button>
+        <button onClick={() => setView('rules')}>📜 Règles</button>
+        <button onClick={() => setView('quit')}>❌ Quitter</button>
       </div>
     </div>
   );

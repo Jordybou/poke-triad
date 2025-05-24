@@ -1,0 +1,124 @@
+@import './variables.css';
+
+.pokedex-container {
+  background-color: var(--gba-bg);
+  font-family: var(--gba-font);
+  color: var(--gba-text);
+  padding: 20px;
+}
+
+.pokedex-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 20px;
+}
+
+.pokedex-header h1 {
+  flex: 1;
+  text-align: center;
+  margin: 0;
+}
+
+.pokedex-return {
+  background: none;
+  border: none;
+  font-size: 1.5rem;
+  cursor: pointer;
+  color: var(--gba-border);
+  margin-left: 10px;
+}
+
+.capture-progress {
+  text-align: center;
+  margin-bottom: 15px;
+  font-weight: bold;
+}
+
+.pokedex-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 10px;
+}
+
+.pokedex-card {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.card-locked {
+  width: 120px;
+  height: 140px;
+  background-color: #ccc;
+  border: 2px solid #888;
+  border-radius: 8px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+
+.card-locked-img {
+  font-size: 32px;
+}
+
+.card-locked-name {
+  margin-top: 5px;
+  font-size: 14px;
+  font-weight: bold;
+  color: #555;
+}
+
+.badges-section {
+  margin-top: 30px;
+  text-align: center;
+}
+
+.badges-grid {
+  display: flex;
+  justify-content: center;
+  gap: 15px;
+  flex-wrap: wrap;
+  margin-top: 10px;
+}
+
+.badge-item {
+  font-size: 28px;
+}
+
+.badges-section {
+  margin-top: 20px;
+  text-align: center;
+}
+
+.badges-grid {
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-top: 10px;
+}
+
+.badge-icon {
+  width: 40px;
+  height: 40px;
+  transition: filter 0.3s ease;
+}
+
+.badge-icon.locked {
+  filter: grayscale(100%);
+  opacity: 0.5;
+}
+
+.badge-img {
+  width: 100%;
+  height: auto;
+  filter: grayscale(100%);
+  opacity: 0.5;
+}
+
+.badge-icon.unlocked .badge-img {
+  filter: none;
+  opacity: 1;
+}

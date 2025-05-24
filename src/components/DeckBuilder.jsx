@@ -1,11 +1,12 @@
-import React from 'react';
+import '../styles/DeckBuilder.css';
 import { useSelector, useDispatch } from 'react-redux';
 import { updateDeck } from '../redux/slices/playerDeckSlice';
 import Card from './Card';
+import { selectSelectedDeck } from '../redux/slices/playerDeckSlice';
 
 export default function DeckBuilder({ setView }) {
-  const pokedex = useSelector(state => state.pokedex?.cards || []);
-  const currentDeck = useSelector(state => state.playerDeck.selectedDeck);
+  const pokedex = useSelector(state => state.pokedex?.captured || []);
+  const currentDeck = useSelector(selectSelectedDeck) || [] ;
   const activeDeckId = useSelector(state => state.playerDeck.activeDeckId);
 
   const dispatch = useDispatch();
@@ -17,7 +18,7 @@ export default function DeckBuilder({ setView }) {
     if (isSelected) {
       updatedDeck = currentDeck.filter(c => c.name !== card.name);
     } else {
-      if (currentDeck.length >= 5) return; // max 5 cartes
+      if (currentDeck.length >= 5) return;
       updatedDeck = [...currentDeck, card];
     }
 
@@ -29,12 +30,12 @@ export default function DeckBuilder({ setView }) {
   };
 
   return (
-    <div style={{ textAlign: 'center' }}>
-      <h1>Création de Deck</h1>
-      <h3>Cartes sélectionnées : {currentDeck?.length || 0} / 5</h3>
+    <div className="deck-builder-container">
+      <h1>🎴 Création de Deck</h1>
+      <h3>Cartes sélectionnées : {currentDeck.length || 0} / 5</h3>
 
-      <div style={{ display: 'flex', justifyContent: 'center', gap: '20px', flexWrap: 'wrap' }}>
-        {(pokedex || []).filter(card => card).map((card, index) => (
+      <div className="deck-builder-grid">
+        {(pokedex || []).map((card, index) => (
           <div key={index} onClick={() => toggleCard(card)} style={{ cursor: 'pointer' }}>
             <Card
               name={card.name}
@@ -48,12 +49,7 @@ export default function DeckBuilder({ setView }) {
         ))}
       </div>
 
-      <button
-        onClick={() => setView('home')}
-        style={{ marginTop: '20px' }}
-      >
-        Retour au menu
-      </button>
+      <button onClick={() => setView('home')}>⬅️ Retour au menu</button>
     </div>
   );
 }

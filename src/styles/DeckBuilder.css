@@ -1,0 +1,44 @@
+@import './variables.css';
+
+.deck-builder-container {
+  background-color: var(--gba-bg);
+  color: var(--gba-text);
+  font-family: var(--gba-font);
+  padding: 20px;
+  min-height: 100vh;
+  text-align: center;
+}
+
+.deck-builder-container h1 {
+  font-size: 14px;
+  margin-bottom: 10px;
+}
+
+.deck-builder-container h3 {
+  font-size: 12px;
+  margin-bottom: 20px;
+}
+
+.deck-builder-container button {
+  background-color: var(--gba-button-bg);
+  color: var(--gba-button-text);
+  border: 2px solid var(--gba-border);
+  padding: 8px 20px;
+  font-family: var(--gba-font);
+  font-size: 10px;
+  cursor: pointer;
+  margin-top: 20px;
+  box-shadow: var(--gba-shadow);
+}
+
+.deck-builder-container button:hover {
+  background-color: var(--gba-button-hover);
+}
+
+.deck-builder-grid {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 16px;
+  margin-top: 20px;
+}

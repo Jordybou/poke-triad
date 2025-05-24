@@ -1,135 +1,76 @@
-import React from 'react';
 import { useSelector } from 'react-redux';
 import Card from './Card';
-import { firstGenPokemon } from '../utils/pokemonList';
-import { BADGES } from '../utils/badges';
+import '../styles/Pokedex.css';
+import { ALL_RULES } from '../utils/rulesList';
 
 export default function Pokedex({ setView }) {
-  const captured = useSelector(state => state.pokedex.captured);
-
-  const total = firstGenPokemon.length;
-  const found = captured.length;
-  const percentage = ((found / total) * 100).toFixed(1);
-  const unlockedBadges = BADGES.filter(badge => found >= badge.threshold);
+  const pokedex = useSelector(state => state.pokedex.captured);
+  const allPokemon = useSelector(state => state.pokedex.all || []);
+  const unlockedRules = useSelector(state => state.rules.unlockedRules);
 
   return (
-    <div style={{ padding: '20px', textAlign: 'center' }}>
-      <button
-        onClick={() => setView('home')}
-        style={{
-          position: 'absolute',
-          top: 20,
-          left: 20,
-          fontSize: '24px',
-          background: 'none',
-          border: 'none',
-          cursor: 'pointer'
-        }}
-        title="Retour au menu"
-      >
-        ⬅️
-      </button>
-
-      <h2>📘 Pokédex – 1ère génération</h2>
-
-      <p style={{ marginTop: '10px', fontSize: '16px' }}>
-        Progression : {found}/{total} cartes capturées ({percentage}%)
-      </p>
-
-      <div style={{ marginTop: '10px' }}>
-        <strong>🏅 Badges obtenus :</strong>
-        {unlockedBadges.length === 0 ? (
-          <span> Aucun pour le moment.</span>
-        ) : (
-          <div style={{
-            display: 'flex',
-            gap: '12px',
-            justifyContent: 'center',
-            marginTop: '8px',
-            flexWrap: 'wrap'
-          }}>
-            {unlockedBadges.map((badge, i) => (
-              <div key={i} style={{
-                padding: '8px 12px',
-                backgroundColor: '#eee',
-                borderRadius: '8px',
-                fontSize: '20px',
-                display: 'flex',
-                flexDirection: 'column',
-                alignItems: 'center'
-              }}>
-                <img src={badge.image} alt={badge.name} style={{ width: '40px', height: '40px' }} />
-                <span style={{ fontSize: '12px' }}>{badge.name}</span>
-              </div>
-            ))}
-          </div>
-        )}
+    <div className="pokedex-container">
+      <div className="pokedex-header">
+        <button className="pokedex-return" onClick={() => setView('home')}>⬅️</button>
+        <h1>📘 Pokédex</h1>
       </div>
 
-      {/* Section des règles débloquées */}
-      {unlockedBadges.length > 0 && (
-        <div style={{ marginTop: '20px' }}>
-          <strong>📜 Règles débloquées :</strong>
-          <ul style={{ listStyle: 'none', padding: 0 }}>
-            {unlockedBadges.map((badge, i) => (
-              <li key={i}>✅ {badge.rule}</li>
-            ))}
-          </ul>
+      <p className="capture-progress">
+        Cartes capturées : {pokedex.length} / {allPokemon.length}
+      </p>
+
+      <div className="badges-section">
+        <h3>Badges débloqués :</h3>
+        <div className="badges-grid">
+          {ALL_RULES.map((rule, index) => {
+            const unlocked = unlockedRules.includes(rule);
+            return (
+              <img
+                key={index}
+                src={`/badges/badge-${index + 1}.png`}
+                alt={`Badge ${rule}`}
+                className={`badge-icon ${!unlocked ? 'locked' : ''}`}
+              />
+            );
+          })}
         </div>
-      )}
+      </div>
 
-      {/* Affichage des cartes du Pokédex */}
-      <div style={{
-        display: 'flex',
-        flexWrap: 'wrap',
-        justifyContent: 'center',
-        gap: '12px',
-        marginTop: '30px'
-      }}>
-        {firstGenPokemon.map((name, index) => {
-          const card = captured.find(c => c.name === name);
-
+      <div className="pokedex-grid">
+        {allPokemon.map((pokemon, index) => {
+          const captured = pokedex.find(p => p.name === pokemon.name);
           return (
-            <div key={index}>
-              {card ? (
+            <div key={index} className="pokedex-card">
+              {captured ? (
                 <Card
-                  name={card.name}
-                  image={card.image}
-                  element={card.element}
-                  values={card.values}
+                  name={captured.name}
+                  image={captured.image}
+                  values={captured.values}
+                  element={captured.element}
                   owner="player"
                 />
               ) : (
-                <div style={{
-                  width: '120px',
-                  height: '200px',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  alignItems: 'center',
-                  justifyContent: 'flex-start',
-                  backgroundColor: '#222',
-                  border: '2px dashed #555',
-                  borderRadius: '8px',
-                  color: '#ccc',
-                  opacity: 0.5,
-                  paddingTop: '8px',
-                  boxSizing: 'border-box'
-                }}>
-                  <div style={{ height: '20px', fontSize: '12px', marginBottom: '6px' }}>{name}</div>
-                  <div style={{
-                    width: '100px',
-                    height: '130px',
-                    backgroundImage: 'url(/images/card-back.png)',
-                    backgroundSize: 'cover',
-                    backgroundPosition: 'center',
-                    borderRadius: '6px'
-                  }} />
+                <div className="card-locked">
+                  <div className="card-locked-img">🔒</div>
+                  <div className="card-locked-name">???</div>
                 </div>
               )}
             </div>
           );
         })}
       </div>
+
+      {ALL_RULES.map((rule, idx) => {
+        const unlocked = unlockedRules.includes(rule);
+        return (
+          <img
+            key={idx}
+            src={`/badges/badge-${idx + 1}.png`}
+            alt={`Badge ${rule}`}
+            className={`badge-icon ${!unlocked ? 'locked' : ''}`}
+          />
+        );
+      })}
     </div>
   );
 }

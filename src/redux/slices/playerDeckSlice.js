@@ -1,12 +1,11 @@
 import { createSlice, nanoid } from '@reduxjs/toolkit';
-import { defaultDeck } from '../../utils/defaultDeck';
 
 const initialState = {
   decks: [
     {
       id: 'default',
       name: 'Deck de base',
-      cards: defaultDeck
+      cards: []
     }
   ],
   activeDeckId: 'default'
@@ -79,5 +78,10 @@ export const {
   setActiveDeck,
   duplicateDeck
 } = playerDeckSlice.actions;
+
+export const selectSelectedDeck = (state) => {
+  const selected = state.playerDeck.decks.find(deck => deck.id === state.playerDeck.activeDeckId);
+  return selected?.cards || [];
+};
 
 export default playerDeckSlice.reducer;

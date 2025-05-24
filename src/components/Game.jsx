@@ -1,12 +1,11 @@
-import React, { useEffect, useState } from 'react';
+import { useState, useEffect } from 'react';
 import Card from './Card';
-import { generateDeck } from '../utils/generateDeck';
-import '../styles/Board.css';
+import { generateDeck, generateDefaultDeck } from '../utils/generateDeck';
 import { useDispatch } from 'react-redux';
 import { addToPokedex } from '../redux/slices/pokedexSlice';
 import { useSelector } from 'react-redux';
-import { defaultDeck } from '../utils/defaultDeck';
 import { checkCapture } from '../utils/logic';
+import '../styles/Game.css';
 
 export default function Game({ setView }) {
     const [playerDeck, setPlayerDeck] = useState([]);
@@ -23,11 +22,11 @@ export default function Game({ setView }) {
 
     const dispatch = useDispatch();
 
-    const playerCustomDeck = useSelector(state => state.playerDeck.deck);
     const activeRules = useSelector(state => state.rules.enabledRules);
     const activeDeck = useSelector(state =>
         state.playerDeck.decks.find(deck => deck.id === state.playerDeck.activeDeckId)
     );
+    const capturedCards = useSelector(state => state.pokedex.captured);
 
     useEffect(() => {
         startNewGame();
@@ -135,9 +134,18 @@ export default function Game({ setView }) {
     };
 
     const startNewGame = async () => {
-        const player = playerCustomDeck.length === 5 ? playerCustomDeck : defaultDeck;
+        const deckToUse = activeDeck?.cards?.length === 5 ? activeDeck.cards : await generateDefaultDeck();
+
+        // Ajout au Pokédex si manquant
+        deckToUse.forEach(card => {
+            if (!capturedCards.some(c => c.name === card.name)) {
+                dispatch(addToPokedex(card));
+            }
+            console.log(deckToUse)
+        });
+
         const enemy = await generateDeck();
-        setPlayerDeck(activeDeck?.cards || []);
+        setPlayerDeck(deckToUse);
         setEnemyDeck(enemy);
         setInitialEnemyDeck(enemy);
         setBoard(Array(3).fill(null).map(() => Array(3).fill(null)));
@@ -309,77 +317,81 @@ export default function Game({ setView }) {
                 </div>
             </div>
 
-            {gameOver && (
-                <div style={{
-                    position: 'fixed',
-                    top: 0, left: 0,
-                    width: '100%',
-                    height: '100%',
-                    backgroundColor: 'rgba(0,0,0,0.6)',
-                    display: 'flex',
-                    justifyContent: 'center',
-                    alignItems: 'center',
-                    zIndex: 10
-                }}>
+            {
+                gameOver && (
                     <div style={{
-                        backgroundColor: 'white',
-                        padding: '30px',
-                        borderRadius: '10px',
-                        textAlign: 'center',
-                        boxShadow: '0 0 20px black'
+                        position: 'fixed',
+                        top: 0, left: 0,
+                        width: '100%',
+                        height: '100%',
+                        backgroundColor: 'rgba(0,0,0,0.6)',
+                        display: 'flex',
+                        justifyContent: 'center',
+                        alignItems: 'center',
+                        zIndex: 10
                     }}>
-                        <h2>{result}</h2>
-                        <button onClick={startNewGame}>Rejouer</button>
-                        <button onClick={() => setView('home')}>Retour au menu</button>
-                    </div>
-                </div>
-            )}
-            {showCapture && (
-                <div style={{
-                    position: 'fixed',
-                    top: 0, left: 0,
-                    width: '100%',
-                    height: '100%',
-                    backgroundColor: 'rgba(0,0,0,0.7)',
-                    display: 'flex',
-                    justifyContent: 'center',
-                    alignItems: 'center',
-                    zIndex: 20
-                }}>
-                    <div style={{
-                        backgroundColor: 'white',
-                        padding: '20px',
-                        borderRadius: '10px',
-                        textAlign: 'center',
-                        maxWidth: '600px'
-                    }}>
-                        <h2>Victoire ! Choisissez une carte à capturer :</h2>
-                        <div style={{ display: 'flex', justifyContent: 'center', flexWrap: 'wrap' }}>
-                            {initialEnemyDeck.map((card, index) => (
-                                <div
-                                    key={index}
-                                    onClick={() => {
-                                        dispatch(addToPokedex(card));
-                                        setCapturedCard(card);
-                                        setShowCapture(false);
-                                        setGameOver(true);
-                                        setResult(`Bravo, vous avez attrapé ${card.name} !`);
-                                    }}
-                                    style={{ cursor: 'pointer', margin: '5px' }}
-                                >
-                                    <Card
-                                        name={card.name}
-                                        image={card.image}
-                                        element={card.element}
-                                        values={card.values}
-                                        owner="enemy"
-                                    />
-                                </div>
-                            ))}
+                        <div style={{
+                            backgroundColor: 'white',
+                            padding: '30px',
+                            borderRadius: '10px',
+                            textAlign: 'center',
+                            boxShadow: '0 0 20px black'
+                        }}>
+                            <h2>{result}</h2>
+                            <button onClick={startNewGame}>Rejouer</button>
+                            <button onClick={() => setView('home')}>Retour au menu</button>
                         </div>
                     </div>
-                </div>
-            )}
-        </div>
+                )
+            }
+            {
+                showCapture && (
+                    <div style={{
+                        position: 'fixed',
+                        top: 0, left: 0,
+                        width: '100%',
+                        height: '100%',
+                        backgroundColor: 'rgba(0,0,0,0.7)',
+                        display: 'flex',
+                        justifyContent: 'center',
+                        alignItems: 'center',
+                        zIndex: 20
+                    }}>
+                        <div style={{
+                            backgroundColor: 'white',
+                            padding: '20px',
+                            borderRadius: '10px',
+                            textAlign: 'center',
+                            maxWidth: '600px'
+                        }}>
+                            <h2>Victoire ! Choisissez une carte à capturer :</h2>
+                            <div style={{ display: 'flex', justifyContent: 'center', flexWrap: 'wrap' }}>
+                                {initialEnemyDeck.map((card, index) => (
+                                    <div
+                                        key={index}
+                                        onClick={() => {
+                                            dispatch(addToPokedex(card));
+                                            setCapturedCard(card);
+                                            setShowCapture(false);
+                                            setGameOver(true);
+                                            setResult(`Bravo, vous avez attrapé ${card.name} !`);
+                                        }}
+                                        style={{ cursor: 'pointer', margin: '5px' }}
+                                    >
+                                        <Card
+                                            name={card.name}
+                                            image={card.image}
+                                            element={card.element}
+                                            values={card.values}
+                                            owner="enemy"
+                                        />
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    </div>
+                )
+            }
+        </div >
     );
 }

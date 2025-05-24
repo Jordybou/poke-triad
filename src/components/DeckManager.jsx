@@ -1,70 +1,41 @@
-
-import React, { useState } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
-import { setActiveDeck, renameDeck, deleteDeck } from '../redux/slices/playerDeckSlice';
+import { setActiveDeck, deleteDeck, duplicateDeck } from '../redux/slices/playerDeckSlice';
+import Card from './Card';
+import '../styles/DeckManager.css';
 
-export default function DeckManager() {
-    const decks = useSelector(state => state.playerDeck.decks);
-    const activeDeckId = useSelector(state => state.playerDeck.activeDeckId);
-    const dispatch = useDispatch();
-    const [selectedDeckId, setSelectedDeckId] = useState(null);
-    const [newName, setNewName] = useState('');
+export default function DeckManager({ setView }) {
+  const decks = useSelector(state => state.playerDeck.decks);
+  const activeId = useSelector(state => state.playerDeck.activeDeckId);
+  const dispatch = useDispatch();
 
-    const handleRename = () => {
-        if (selectedDeckId && newName.trim()) {
-            dispatch(renameDeck({ id: selectedDeckId, name: newName.trim() }));
-            setNewName('');
-        }
-    };
+  return (
+    <div className="deck-manager-container">
+      <div className="deck-manager-header">
+        <button className="return-button" onClick={() => setView('home')}>⬅️</button>
+        <h1>📦 Gestion des Decks</h1>
+      </div>
 
-    const handleDelete = () => {
-        if (selectedDeckId) {
-            dispatch(deleteDeck(selectedDeckId));
-            setSelectedDeckId(null);
-        }
-    };
-
-    const handleSetActive = () => {
-        if (selectedDeckId) {
-            dispatch(setActiveDeck(selectedDeckId));
-        }
-    };
-
-    return (
-        <div style={{ padding: '20px' }}>
-            <h2>Gestion des Decks</h2>
-            <ul>
-                {decks.map(deck => (
-                    <li
-                        key={deck.id}
-                        style={{
-                            margin: '10px 0',
-                            padding: '10px',
-                            border: selectedDeckId === deck.id ? '2px solid blue' : '1px solid gray',
-                            backgroundColor: deck.id === activeDeckId ? '#d0f0ff' : 'white',
-                            cursor: 'pointer'
-                        }}
-                        onClick={() => setSelectedDeckId(deck.id)}
-                    >
-                        <strong>{deck.name}</strong> {deck.cards.length}/5 cartes
-                        {deck.id === activeDeckId && <span> ✅ (Actif)</span>}
-                    </li>
+      {decks.length === 0 ? (
+        <p>Vous n'avez aucun deck.</p>
+      ) : (
+        <div className="deck-list">
+          {decks.map((deck, index) => (
+            <div key={deck.id} className={`deck-box ${deck.id === activeId ? 'active' : ''}`}>
+              <h3>Deck {index + 1}</h3>
+              <div className="deck-cards">
+                {deck.cards.map((card, idx) => (
+                  <Card key={idx} {...card} owner="player" />
                 ))}
-            </ul>
-
-            {selectedDeckId && (
-                <div style={{ marginTop: '20px' }}>
-                    <input
-                        type="text"
-                        placeholder="Nouveau nom"
-                        value={newName}
-                        onChange={e => setNewName(e.target.value)}
-                    />
-                    <button onClick={handleRename} style={{ marginLeft: '10px' }}>Renommer</button>
-                    <button onClick={handleDelete} style={{ marginLeft: '10px' }}>Supprimer</button>
-                    <button onClick={handleSetActive} style={{ marginLeft: '10px' }}>Définir comme actif</button>
-                </div>
-            )}
+              </div>
+              <div className="deck-actions">
+                <button onClick={() => dispatch(setActiveDeck(deck.id))}>Activer</button>
+                <button onClick={() => dispatch(duplicateDeck(deck))}>Dupliquer</button>
+                <button onClick={() => dispatch(deleteDeck(deck.id))}>Supprimer</button>
+              </div>
+            </div>
+          ))}
         </div>
-    );
+      )}
+    </div>
+  );
 }

@@ -1,0 +1,17 @@
+
+.badge-item {
+  width: 32px;
+  height: 32px;
+  display: inline-block;
+  background-size: cover;
+  background-position: center;
+}
+
+.badge-unlocked {
+  filter: none;
+}
+
+.badge-locked {
+  filter: grayscale(100%);
+  opacity: 0.4;
+}

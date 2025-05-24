@@ -1,13 +1,34 @@
-import React, { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Game from './components/Game';
 import Home from './components/Home';
-import Pokedex from './components/Pokedex'; // vide pour l'instant
-import Rules from './components/Rules';     // vide pour l'instant
-import DeckBuilder from './components/DeckBuilder'; // vide pour l'instant
-import Quit from './components/Quit';       // vide pour l'instant
+import Pokedex from './components/Pokedex';
+import Rules from './components/Rules';
+import DeckBuilder from './components/DeckBuilder';
+import Quit from './components/Quit';
+import { useDispatch } from 'react-redux';
+import { loadAllPokemon } from './utils/loadAllPokemon';
+import { setAllPokemon, addToPokedex } from './redux/slices/pokedexSlice';
+import { generateDefaultDeck } from './utils/generateDeck';
+import { store } from './redux/store';
 
 function App() {
   const [view, setView] = useState('home');
+  const dispatch = useDispatch();
+
+  useEffect(() => {
+    loadAllPokemon().then(all => {
+      dispatch(setAllPokemon(all));
+
+      // On ajoute le deck de base au Pokédex s'il est vide
+      generateDefaultDeck().then(defaultDeck => {
+        const state = store.getState();
+        if (state.pokedex.captured.length === 0) {
+          defaultDeck.forEach(card => dispatch(addToPokedex(card)));
+        }
+      });
+    });
+  }, []);
+
 
   return (
     <>

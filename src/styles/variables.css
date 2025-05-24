@@ -1,0 +1,14 @@
+:root {
+  --gba-bg: #d9cbb0;
+  --gba-border: #4a3f35;
+  --gba-text: #222;
+  --gba-accent: #fcdc58;
+
+  --gba-button-bg: #5a98d1;
+  --gba-button-text: white;
+  --gba-button-hover: #3978a6;
+
+  --gba-font: 'Press Start 2P', cursive;
+
+  --gba-shadow: 2px 2px 0px #444;
+}

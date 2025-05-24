@@ -1,0 +1,56 @@
+@import './variables.css';
+
+.rules-container {
+  background-color: var(--gba-bg);
+  font-family: var(--gba-font);
+  color: var(--gba-text);
+  padding: 20px;
+  text-align: center;
+}
+
+.rules-header {
+  display: flex;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.rules-header h1 {
+  flex: 1;
+  text-align: center;
+  margin: 0;
+}
+
+.rules-return {
+  background-color: var(--gba-button-bg);
+  color: white;
+  border: 2px solid var(--gba-border);
+  padding: 4px 8px;
+  font-family: var(--gba-font);
+  cursor: pointer;
+}
+
+.rules-list {
+  list-style: none;
+  padding: 0;
+  margin-top: 15px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  align-items: center;
+}
+
+.rule-item {
+  font-size: 14px;
+  background-color: #f3f3f3;
+  padding: 8px 12px;
+  border: 2px solid var(--gba-border);
+  border-radius: 6px;
+  width: 250px;
+  text-align: left;
+}
+
+.rule-item.locked {
+  background-color: #ccc;
+  color: #777;
+  font-style: italic;
+}
