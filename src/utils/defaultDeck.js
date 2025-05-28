@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { generateCardValuesFromStats } from statUtils.js;
+import { generateCardValuesFromStats } from './statUtils.js';
 
 const FIXED_IDS = [25, 4, 7, 1, 59]; // Pikachu, Salamèche, Carapuce, Bulbizarre, Arcanin
 

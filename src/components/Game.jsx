@@ -6,9 +6,13 @@ import { addToPokedex } from '../redux/slices/pokedexSlice';
 import { useSelector } from 'react-redux';
 import { checkCapture } from '../utils/logic';
 import '../styles/Game.css';
+import { addDeck, setActiveDeck } from '../redux/slices/playerDeckSlice'
 
 export default function Game({ setView }) {
-    const [playerDeck, setPlayerDeck] = useState([]);
+    const playerDeck = useSelector(state => {
+        const deck = state.playerDeck.decks.find(d => d.id === state.playerDeck.activeDeckId);
+        return deck?.cards || [];
+    });
     const [enemyDeck, setEnemyDeck] = useState([]);
     const [board, setBoard] = useState(Array(3).fill(null).map(() => Array(3).fill(null)));
     const [selectedCard, setSelectedCard] = useState(null);
@@ -29,6 +33,11 @@ export default function Game({ setView }) {
     const capturedCards = useSelector(state => state.pokedex.captured);
 
     useEffect(() => {
+        if (!playerDeck || playerDeck.length !== 5) {
+            console.error("Deck joueur invalide :", playerDeck);
+            return;
+        }
+
         startNewGame();
     }, []);
 
@@ -73,7 +82,7 @@ export default function Game({ setView }) {
         newDeck.splice(selectedCard.index, 1);
 
         setBoard(boardAfterCapture);
-        setPlayerDeck(newDeck);
+        // setPlayerDeck supprimé
         setSelectedCard(null);
         setTurn('enemy');
         checkEndGame(boardAfterCapture);
@@ -134,18 +143,26 @@ export default function Game({ setView }) {
     };
 
     const startNewGame = async () => {
-        const deckToUse = activeDeck?.cards?.length === 5 ? activeDeck.cards : await generateDefaultDeck();
+        let deckToUse = activeDeck?.cards?.length === 5 ? activeDeck.cards : await generateDefaultDeck();
 
-        // Ajout au Pokédex si manquant
+        if (!Array.isArray(deckToUse) || deckToUse.length !== 5) {
+            console.warn("Aucun deck valide trouvé, génération d’un deck par défaut.");
+            deckToUse = await generateDefaultDeck();
+            dispatch(addDeck({
+                id: 'default-player',
+                name: 'Deck Joueur',
+                cards: deckToUse
+            }));
+            dispatch(setActiveDeck('default-player'));
+        }
+
         deckToUse.forEach(card => {
             if (!capturedCards.some(c => c.name === card.name)) {
                 dispatch(addToPokedex(card));
             }
-            console.log(deckToUse)
         });
 
         const enemy = await generateDeck();
-        setPlayerDeck(deckToUse);
         setEnemyDeck(enemy);
         setInitialEnemyDeck(enemy);
         setBoard(Array(3).fill(null).map(() => Array(3).fill(null)));
