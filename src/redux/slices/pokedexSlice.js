@@ -1,35 +1,34 @@
 import { createSlice } from '@reduxjs/toolkit';
+import { BADGES } from '../data/badges';
 
 const initialState = {
-  captured: [],       // les cartes attrapées
-  all: [],            // tous les pokémons de la 1ʳᵉ gen
-  progression: 0,     // ex: 0.32 pour 32%
-  badges: []          // ["Badge 1", "Badge 2", ...]
+  captured: [],
+  badgeCount: 0,
 };
 
 const pokedexSlice = createSlice({
   name: 'pokedex',
   initialState,
   reducers: {
-    addToPokedex: (state, action) => {
-      const exists = state.captured.some(card => card.name === action.payload.name);
-      if (!exists) {
-        state.captured.push(action.payload);
-        state.progression = state.captured.length / 151;
+    capturePokemon(state, action) {
+      const newCard = action.payload;
+      if (!state.captured.some((card) => card.name === newCard.name)) {
+        state.captured.push(newCard);
 
-        const totalBadges = 8;
-        const needed = Math.floor(state.progression * totalBadges);
-        const current = state.badges.length;
-        for (let i = current + 1; i <= needed; i++) {
-          state.badges.push(`Badge ${i}`);
-        }
+        // Recalcul des badges débloqués
+        const capturedCount = state.captured.length;
+        const newBadgeCount = BADGES.filter(b => capturedCount >= b.threshold).length;
+        state.badgeCount = newBadgeCount;
       }
     },
-    setAllPokemon: (state, action) => {
-      state.all = action.payload; // tableau avec les 151 noms { name: "pikachu" }
+    resetPokedex() {
+      return initialState;
     },
-  }
+  },
 });
 
-export const { addToPokedex, setAllPokemon } = pokedexSlice.actions;
+export const { capturePokemon, resetPokedex } = pokedexSlice.actions;
+export const selectCaptured = (state) => state.pokedex.captured;
+export const selectBadgeCount = (state) => state.pokedex.badgeCount;
+
 export default pokedexSlice.reducer;

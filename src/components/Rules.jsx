@@ -1,50 +1,91 @@
-
-import { useSelector, useDispatch } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { toggleRule } from '../redux/slices/rulesSlice';
-import { ALL_RULES } from '../utils/rulesList';
+import { useNavigate } from 'react-router-dom';
 import '../styles/Rules.css';
 
-export default function Rules({ setView }) {
-  const enabledRules = useSelector(state => state.rules.enabledRules);
-  const unlockedRules = useSelector(state => state.rules.unlockedRules);
-  const dispatch = useDispatch();
+const ruleData = {
+  mur: {
+    label: 'Mur',
+    icon: '🧱',
+    description: "Il n'y a pas de bord : une carte peut capturer en regardant au-delà du plateau (ex: la case 0 regarde la 2).",
+  },
+  plus: {
+    label: 'Plus',
+    icon: '➕',
+    description: "Capture si deux additions de valeurs adjacentes sont identiques.",
+  },
+  combo: {
+    label: 'Combo',
+    icon: '🔁',
+    description: "Une capture déclenche une réaction en chaîne.",
+  },
+  même: {
+    label: 'Même',
+    icon: '🔗',
+    description: "Capture si deux valeurs adjacentes sont égales.",
+  },
+  aléatoire: {
+    label: 'Aléatoire',
+    icon: '🎲',
+    description: "Deck composé de cartes aléatoires.",
+  },
+  ordre: {
+    label: 'Ordre',
+    icon: '📜',
+    description: "Les cartes doivent être jouées dans l'ordre.",
+  },
+  chaos: {
+    label: 'Chaos',
+    icon: '💥',
+    description: "Une carte aléatoire est jouée à chaque tour.",
+  },
+  ascension: {
+    label: 'Ascension',
+    icon: '📈',
+    description: "Bonus de +1 aux cartes du même type déjà posées.",
+  },
+};
 
-  const handleToggle = (rule) => {
-    dispatch(toggleRule(rule));
-  };
+export default function Rules() {
+  const rules = useSelector((state) => state.rules);
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
 
   return (
     <div className="rules-container">
-      <div className="rules-header">
-        <button className="rules-return" onClick={() => setView('home')}>⬅️</button>
-        <h1>📜 Règles Spéciales</h1>
-      </div>
-
-      <p>Activez ou découvrez les règles débloquées au fil des captures :</p>
-
-      <ul className="rules-list">
-        {ALL_RULES.map((rule, index) => {
-          const unlocked = unlockedRules.includes(rule);
-          const enabled = enabledRules.includes(rule);
-
+      <button className="back-button" onClick={() => navigate('/')}>← Retour</button>
+      <h1>Règles Spéciales</h1>
+      <div className="rules-grid">
+        {rules.map((rule) => {
+          const { name, active, unlocked } = rule;
+          const data = ruleData[name] || {};
           return (
-            <li key={index} className="rule-item">
-              <label>
-                {unlocked ? (
-                  <input
-                    type="checkbox"
-                    checked={enabled}
-                    onChange={() => handleToggle(rule)}
-                  />
-                ) : (
-                  <span role="img" aria-label="lock">🔒</span>
-                )}
-                {rule}
-              </label>
-            </li>
+            <div
+              key={name}
+              className={`rule-box ${unlocked ? 'unlocked' : 'locked'}`}
+              title={unlocked ? data.description : 'Règle verrouillée'}
+            >
+              <div className="rule-icon">{data.icon || '❓'}</div>
+              <div className="rule-name">{data.label || name}</div>
+              {unlocked ? (
+                <>
+                  <p className="rule-description">{data.description}</p>
+                  <label className="rule-toggle">
+                    <input
+                      type="checkbox"
+                      checked={active}
+                      onChange={() => dispatch(toggleRule(name))}
+                    />
+                    Activée
+                  </label>
+                </>
+              ) : (
+                <div className="lock-icon">🔒</div>
+              )}
+            </div>
           );
         })}
-      </ul>
+      </div>
     </div>
   );
 }

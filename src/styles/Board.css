@@ -1,0 +1,44 @@
+.board-container {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  background-color: #f4f1e9;
+  border: 4px solid #444;
+  padding: 8px;
+  border-radius: 10px;
+  box-shadow: inset 0 0 8px #999;
+  width: fit-content;
+  margin: auto;
+}
+
+.board-row {
+  display: flex;
+  gap: 6px;
+}
+
+.board-cell {
+  width: 120px;
+  height: 150px;
+  background-color: #dcd2b0;
+  border: 2px dashed #999;
+  border-radius: 6px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.element-icon {
+  width: 28px;
+  height: 28px;
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  opacity: 0.9;
+}
+
+.fallback-emoji {
+  font-size: 18px;
+  font-weight: bold;
+  position: absolute;
+  pointer-events: none;
+}

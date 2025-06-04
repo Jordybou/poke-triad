@@ -13,9 +13,10 @@ export async function loadAllPokemon() {
       const name = nameEntry ? nameEntry.name : res.data.name;
 
       allPokemon.push({
+        id, // 🆗 important pour les captures, tris, etc.
         name,
-        image: res.data.sprites.front_default,
-        element: res.data.types[0].type.name,
+        image: res.data.sprites.other['official-artwork'].front_default || '/images/missing.png',
+        type: res.data.types[0].type.name, // pour cohérence avec generate.js
         values: generateCardValuesFromStats(res.data.stats),
       });
 

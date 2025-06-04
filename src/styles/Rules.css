@@ -2,55 +2,76 @@
 
 .rules-container {
   background-color: var(--gba-bg);
-  font-family: var(--gba-font);
   color: var(--gba-text);
+  font-family: var(--gba-font);
   padding: 20px;
+  min-height: 100vh;
   text-align: center;
 }
 
-.rules-header {
-  display: flex;
-  align-items: center;
+.rules-container h1 {
+  font-size: 16px;
+  margin-bottom: 20px;
+}
+
+.rules-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 16px;
+  justify-items: center;
+}
+
+.rule-box {
+  border: 2px solid var(--gba-border);
+  background-color: white;
+  border-radius: 10px;
+  padding: 12px;
+  width: 100%;
+  max-width: 220px;
+  position: relative;
+  box-shadow: var(--gba-shadow);
+}
+
+.rule-box.locked {
+  filter: grayscale(100%);
+  opacity: 0.6;
+}
+
+.rule-icon {
+  font-size: 28px;
+  margin-bottom: 8px;
+}
+
+.rule-name {
+  font-size: 14px;
+  font-weight: bold;
+  color: var(--gba-accent);
+  margin-bottom: 6px;
+}
+
+.rule-description {
+  font-size: 10px;
   margin-bottom: 10px;
 }
 
-.rules-header h1 {
-  flex: 1;
-  text-align: center;
-  margin: 0;
+.rule-toggle {
+  font-size: 11px;
 }
 
-.rules-return {
-  background-color: var(--gba-button-bg);
-  color: white;
-  border: 2px solid var(--gba-border);
-  padding: 4px 8px;
-  font-family: var(--gba-font);
+.lock-icon {
+  font-size: 20px;
+  color: #555;
+}
+
+.back-button {
+  position: absolute;
+  top: 1rem;
+  left: 1rem;
+  background-color: #fff;
+  border: 2px solid #333;
+  border-radius: 8px;
+  padding: 0.5rem 1rem;
+  font-size: 1rem;
   cursor: pointer;
-}
-
-.rules-list {
-  list-style: none;
-  padding: 0;
-  margin-top: 15px;
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  align-items: center;
-}
-
-.rule-item {
-  font-size: 14px;
-  background-color: #f3f3f3;
-  padding: 8px 12px;
-  border: 2px solid var(--gba-border);
-  border-radius: 6px;
-  width: 250px;
-  text-align: left;
-}
-
-.rule-item.locked {
-  background-color: #ccc;
-  color: #777;
-  font-style: italic;
+  z-index: 1000;
 }

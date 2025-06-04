@@ -1,30 +1,36 @@
 import { useSelector, useDispatch } from 'react-redux';
-import { setActiveDeck, deleteDeck, duplicateDeck } from '../redux/slices/playerDeckSlice';
+import {
+  setActiveDeck,
+  deleteDeck,
+  duplicateDeck,
+  selectDecks,
+  selectActiveDeckId,
+} from '../redux/slices/playerDeckSlice';
 import Card from './Card';
 import '../styles/DeckManager.css';
+import { useNavigate } from 'react-router-dom';
 
-export default function DeckManager({ setView }) {
-  const decks = useSelector(state => state.playerDeck.decks);
-  const activeId = useSelector(state => state.playerDeck.activeDeckId);
+export default function DeckManager() {
+  const navigate = useNavigate();
   const dispatch = useDispatch();
+  const decks = useSelector(selectDecks);
+  const activeId = useSelector(selectActiveDeckId);
 
   return (
     <div className="deck-manager-container">
-      <div className="deck-manager-header">
-        <button className="return-button" onClick={() => setView('home')}>⬅️</button>
-        <h1>📦 Gestion des Decks</h1>
-      </div>
+      <button className="back-button" onClick={() => navigate('/')}>← Retour</button>
+      <h1>📦 Gestion des Decks</h1>
 
       {decks.length === 0 ? (
-        <p>Vous n'avez aucun deck.</p>
+        <p>Vous n'avez encore aucun deck. Créez-en un !</p>
       ) : (
         <div className="deck-list">
           {decks.map((deck, index) => (
             <div key={deck.id} className={`deck-box ${deck.id === activeId ? 'active' : ''}`}>
-              <h3>Deck {index + 1}</h3>
+              <h3>{deck.name || `Deck ${index + 1}`}</h3>
               <div className="deck-cards">
                 {deck.cards.map((card, idx) => (
-                  <Card key={idx} {...card} owner="player" />
+                  <Card key={idx} card={card} owner="player" inDeck />
                 ))}
               </div>
               <div className="deck-actions">

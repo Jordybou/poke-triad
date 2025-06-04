@@ -1,124 +1,121 @@
 @import './variables.css';
 
-.pokedex-container {
+.pokedex {
   background-color: var(--gba-bg);
-  font-family: var(--gba-font);
   color: var(--gba-text);
+  font-family: var(--gba-font);
   padding: 20px;
+  min-height: 100vh;
+  text-align: center;
 }
 
-.pokedex-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
+.pokedex h1 {
+  font-size: 16px;
+  margin-bottom: 10px;
+}
+
+.pokedex p {
+  font-size: 12px;
   margin-bottom: 20px;
 }
 
-.pokedex-header h1 {
-  flex: 1;
-  text-align: center;
-  margin: 0;
-}
-
-.pokedex-return {
-  background: none;
-  border: none;
-  font-size: 1.5rem;
-  cursor: pointer;
-  color: var(--gba-border);
-  margin-left: 10px;
-}
-
-.capture-progress {
-  text-align: center;
-  margin-bottom: 15px;
-  font-weight: bold;
-}
-
-.pokedex-grid {
+.card-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
   gap: 10px;
-}
-
-.pokedex-card {
-  display: flex;
   justify-content: center;
-  align-items: center;
+  margin-bottom: 30px;
 }
 
-.card-locked {
-  width: 120px;
-  height: 140px;
-  background-color: #ccc;
-  border: 2px solid #888;
+.card {
+  width: 100px;
+  height: 120px;
+  background-color: white;
+  border: 2px solid var(--gba-border);
   border-radius: 8px;
   display: flex;
   flex-direction: column;
   justify-content: center;
   align-items: center;
+  font-size: 10px;
+  position: relative;
 }
 
-.card-locked-img {
-  font-size: 32px;
+.card img {
+  width: 64px;
+  height: 64px;
 }
 
-.card-locked-name {
+.card p {
   margin-top: 5px;
-  font-size: 14px;
+  font-size: 10px;
   font-weight: bold;
-  color: #555;
 }
 
-.badges-section {
-  margin-top: 30px;
-  text-align: center;
+.card.locked {
+  background-color: #ddd;
+  border: 2px dashed #888;
+  position: relative;
 }
 
-.badges-grid {
+.card.locked .lock {
+  width: 32px;
+  height: 32px;
+  background-image: url('/images/lock.png');
+  background-size: contain;
+  background-repeat: no-repeat;
+  filter: grayscale(100%);
+  opacity: 0.6;
+}
+
+.badge-container {
   display: flex;
   justify-content: center;
-  gap: 15px;
+  gap: 10px;
   flex-wrap: wrap;
-  margin-top: 10px;
 }
 
-.badge-item {
-  font-size: 28px;
+.badge {
+  width: 24px;
+  height: 24px;
+  border-radius: 4px;
+  border: 2px solid var(--gba-border);
+  box-shadow: 1px 1px 2px #333;
+  object-fit: contain;
 }
 
-.badges-section {
-  margin-top: 20px;
-  text-align: center;
-}
-
-.badges-grid {
-  display: flex;
-  justify-content: center;
-  gap: 12px;
-  flex-wrap: wrap;
-  margin-top: 10px;
-}
-
-.badge-icon {
-  width: 40px;
-  height: 40px;
-  transition: filter 0.3s ease;
-}
-
-.badge-icon.locked {
+.badge.locked {
   filter: grayscale(100%);
-  opacity: 0.5;
+  opacity: 0.4;
 }
 
-.badge-img {
-  width: 100%;
-  height: auto;
-  filter: grayscale(100%);
-  opacity: 0.5;
-}
-
-.badge-icon.unlocked .badge-img {
-  filter: none;
+.badge.unlocked {
+  background-color: gold;
   opacity: 1;
+}
+
+.back-button {
+  position: absolute;
+  top: 1rem;
+  left: 1rem;
+  background-color: #fff;
+  border: 2px solid #333;
+  border-radius: 8px;
+  padding: 0.5rem 1rem;
+  font-size: 1rem;
+  cursor: pointer;
+  z-index: 1000;
+}
+
+.poke-id {
+  font-size: 10px;
+  font-weight: bold;
+  color: var(--gba-accent);
+  margin-bottom: 2px;
+}
+
+.poke-name {
+  font-size: 12px;
+  font-weight: bold;
+  color: var(--gba-text);
 }

@@ -10,35 +10,81 @@
 }
 
 .deck-builder-container h1 {
-  font-size: 14px;
+  font-size: 16px;
   margin-bottom: 10px;
+  text-transform: uppercase;
 }
 
-.deck-builder-container h3 {
+.deck-builder-container p {
   font-size: 12px;
-  margin-bottom: 20px;
-}
-
-.deck-builder-container button {
-  background-color: var(--gba-button-bg);
-  color: var(--gba-button-text);
-  border: 2px solid var(--gba-border);
-  padding: 8px 20px;
-  font-family: var(--gba-font);
-  font-size: 10px;
-  cursor: pointer;
-  margin-top: 20px;
-  box-shadow: var(--gba-shadow);
-}
-
-.deck-builder-container button:hover {
-  background-color: var(--gba-button-hover);
+  margin-bottom: 10px;
 }
 
 .deck-builder-grid {
   display: flex;
-  justify-content: center;
   flex-wrap: wrap;
-  gap: 16px;
+  justify-content: center;
+  gap: 12px;
   margin-top: 20px;
+}
+
+.deck-builder-grid .card {
+  width: 100px;
+  height: 120px;
+  border: 2px solid var(--gba-border);
+  background-color: #fff;
+  border-radius: 6px;
+  box-shadow: var(--gba-shadow);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-size: 12px;
+  padding: 4px;
+  transition: transform 0.2s ease;
+}
+
+.deck-builder-grid .card img {
+  width: 60px;
+  height: 60px;
+  object-fit: contain;
+  image-rendering: pixelated;
+}
+
+.deck-builder-grid .card.selected {
+  border: 2px solid #3b4cca;
+  background-color: #ffeb3b;
+  transform: scale(1.05);
+}
+
+.validate-button {
+  margin-top: 1.5rem;
+  padding: 8px 16px;
+  font-size: 12px;
+  font-family: var(--gba-font);
+  background-color: var(--gba-button-bg);
+  color: var(--gba-button-text);
+  border: 2px solid var(--gba-border);
+  border-radius: 6px;
+  cursor: pointer;
+  box-shadow: var(--gba-shadow);
+}
+
+.validate-button:hover {
+  background-color: var(--gba-button-hover);
+}
+
+.back-button {
+  position: absolute;
+  top: 1rem;
+  left: 1rem;
+  background-color: #fff;
+  border: 2px solid #333;
+  border-radius: 8px;
+  padding: 0.5rem 1rem;
+  font-size: 12px;
+  font-family: var(--gba-font);
+  cursor: pointer;
+  z-index: 1000;
 }

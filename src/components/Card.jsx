@@ -1,33 +1,90 @@
 import '../styles/Card.css';
+import { getTypeEmoji } from '../utils/translate';
 
-const ELEMENT_ICONS = {
-  fire: '🔥', water: '💧', grass: '🌿',
-  electric: '⚡', ice: '❄️', psychic: '🔮',
-  rock: '⛰️', ghost: '👻', bug: '🐞',
-  dragon: '🐉', fairy: '✨', dark: '🌑',
-  steel: '⚙️', normal: '⭐', poison: '☠️',
-  ground: '🌍', flying: '🕊️', fighting: '🥊'
-};
+function Card({
+  card,
+  onClick,
+  selected,
+  owner,
+  inDeck = false,
+  faceDown = false,
+  zoomable = false,
+  bonus = null,
+  malus = null,
+  element = null,
+}) {
+  if (!card) return null;
 
-export default function Card({ name, image, values, element, owner, isSelected, onBoard }) {
+  const borderColor = owner === 'player' ? 'blue-border' : 'red-border';
+  const bonusClass = bonus ? 'card-bonus' : '';
+  const malusClass = malus ? 'card-malus' : '';
+  const cardClasses = `card ${borderColor} ${selected ? 'selected' : ''} ${zoomable ? 'zoomable' : ''} ${bonusClass} ${malusClass}`;
+
+  const getTypeIcon = (type) => {
+    if (!type) return null;
+    const filename = type.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+    return `/icons/types/${filename}.svg`;
+  };
+
+  const renderValue = (value, side) => {
+    const isBonus = bonus === side;
+    const isMalus = malus === side;
+    const className = `value ${side} ${isBonus ? 'bonus' : ''} ${isMalus ? 'malus' : ''}`;
+    return <div className={className}>{value}</div>;
+  };
+
   return (
-    <div className={`card ${owner} ${isSelected ? 'selected' : ''} ${onBoard ? 'on-board' : ''}`}>
-      <div className="card-name">{name}</div>
+    <div className={cardClasses} onClick={onClick}>
+      {inDeck && !faceDown && <div className="card-name">{card.frenchName}</div>}
 
-      {image ? (
-        <img className="card-image" src={image} alt={name} />
+      {faceDown || card.hidden ? (
+        <div className="card-back-wrapper">
+          <img src="/images/card-back.png" alt="Dos de carte" className="card-back-image" />
+        </div>
       ) : (
-        <div className="card-image placeholder">🔲</div>
+        <>
+          {renderValue(card.top, 'top')}
+          {renderValue(card.left, 'left')}
+          {renderValue(card.right, 'right')}
+          {renderValue(card.bottom, 'bottom')}
+
+          <img src={card.image} alt={card.frenchName} className="card-image" />
+
+          {/* Type du Pokémon (avec fallback emoji si l’image échoue) */}
+          {card.type && (
+            <img
+              src={getTypeIcon(card.type)}
+              alt={card.type}
+              className="card-type-icon"
+              onError={(e) => {
+                const emoji = getTypeEmoji(card.type);
+                e.target.replaceWith(Object.assign(document.createElement('span'), {
+                  className: 'fallback-emoji',
+                  innerText: emoji,
+                }));
+              }}
+            />
+          )}
+
+          {/* Élément de la case (avec fallback emoji si l’image échoue) */}
+          {element && (
+            <img
+              src={getTypeIcon(element)}
+              alt={element}
+              className="card-element-icon"
+              onError={(e) => {
+                const emoji = getTypeEmoji(element);
+                e.target.replaceWith(Object.assign(document.createElement('span'), {
+                  className: 'fallback-emoji',
+                  innerText: emoji,
+                }));
+              }}
+            />
+          )}
+        </>
       )}
-
-      <div className="card-values">
-        <span className="value top">{values?.top}</span>
-        <span className="value right">{values?.right}</span>
-        <span className="value bottom">{values?.bottom}</span>
-        <span className="value left">{values?.left}</span>
-      </div>
-
-      <div className="card-element">{element}</div>
     </div>
   );
 }
+
+export default Card;

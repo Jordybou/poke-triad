@@ -1,87 +1,85 @@
 import { createSlice, nanoid } from '@reduxjs/toolkit';
+import { generateDefaultDeck } from '../../utils/generate';
+
+const initialDeck = {
+  id: nanoid(),
+  name: 'Deck de départ',
+  cards: [], // Rempli dynamiquement
+};
 
 const initialState = {
-  decks: [
-    {
-      id: 'default',
-      name: 'Deck de base',
-      cards: []
-    }
-  ],
-  activeDeckId: 'default'
+  decks: [initialDeck],
+  activeDeckId: initialDeck.id,
 };
 
 const playerDeckSlice = createSlice({
   name: 'playerDeck',
   initialState,
   reducers: {
-    addDeck: {
-      reducer(state, action) {
-        state.decks.push(action.payload);
-      },
-      prepare(name, cards) {
-        return {
-          payload: {
-            id: nanoid(),
-            name,
-            cards,
-          }
-        };
+    // Remplace toutes les cartes d’un deck par défaut
+    setPlayerDeck(state, action) {
+      const active = state.decks.find(d => d.id === state.activeDeckId);
+      if (active) {
+        active.cards = action.payload;
       }
     },
 
-    updateDeck(state, action) {
-      const { id, name, cards } = action.payload;
-      const existingDeck = state.decks.find(deck => deck.id === id);
-      if (existingDeck) {
-        if (name !== undefined) existingDeck.name = name;
-        if (cards !== undefined) existingDeck.cards = cards;
-      }
+    // Réinitialise le deck actif avec 5 cartes par défaut
+    asyncResetPlayerDeck(state) {
+      // À appeler avec middleware async ou thunk pour await
     },
 
+    // Ajoute un nouveau deck
+    addDeck(state, action) {
+      const newDeck = {
+        id: nanoid(),
+        name: action.payload.name || `Deck ${state.decks.length + 1}`,
+        cards: action.payload.cards || [],
+      };
+      state.decks.push(newDeck);
+    },
+
+    // Duplique un deck existant
+    duplicateDeck(state, action) {
+      const copied = {
+        ...action.payload,
+        id: nanoid(),
+        name: `${action.payload.name} (copie)`,
+      };
+      state.decks.push(copied);
+    },
+
+    // Supprime un deck (sauf si c’est le dernier)
     deleteDeck(state, action) {
-      const idsToDelete = Array.isArray(action.payload) ? action.payload : [action.payload];
-      state.decks = state.decks.filter(deck => !idsToDelete.includes(deck.id));
-
-      // Si le deck actif a été supprimé, on réinitialise
-      if (idsToDelete.includes(state.activeDeckId)) {
-        state.activeDeckId = state.decks.length > 0 ? state.decks[0].id : null;
+      const filtered = state.decks.filter(deck => deck.id !== action.payload);
+      if (filtered.length > 0) {
+        state.decks = filtered;
+        // Réaffecter un deck actif si nécessaire
+        if (state.activeDeckId === action.payload) {
+          state.activeDeckId = state.decks[0].id;
+        }
       }
     },
 
+    // Change le deck actif
     setActiveDeck(state, action) {
       state.activeDeckId = action.payload;
     },
-
-    duplicateDeck(state, action) {
-      const deckToDuplicate = state.decks.find(deck => deck.id === action.payload);
-      if (deckToDuplicate) {
-        const copy = {
-          id: nanoid(),
-          name: `${deckToDuplicate.name} (copie)`,
-          cards: [...deckToDuplicate.cards]
-        };
-        state.decks.push(copy);
-      }
-    },
-  }
+  },
 });
 
-// Sélecteur utile : récupérer le deck actif
-export const selectActiveDeck = (state) =>
-  state.playerDeck.decks.find(deck => deck.id === state.playerDeck.activeDeckId);
-
 export const {
+  setPlayerDeck,
+  asyncResetPlayerDeck,
   addDeck,
-  updateDeck,
   deleteDeck,
+  duplicateDeck,
   setActiveDeck,
-  duplicateDeck
 } = playerDeckSlice.actions;
 
-export const selectSelectedDeck = (state) => {
-  const selected = state.playerDeck.decks.find(deck => deck.id === state.playerDeck.activeDeckId);
-  return selected?.cards || [];
-};
+export const selectDecks = (state) => state.playerDeck.decks;
+export const selectActiveDeckId = (state) => state.playerDeck.activeDeckId;
+export const selectPlayerDeck = (state) =>
+  state.playerDeck.decks.find((deck) => deck.id === state.playerDeck.activeDeckId)?.cards || [];
 
 export default playerDeckSlice.reducer;

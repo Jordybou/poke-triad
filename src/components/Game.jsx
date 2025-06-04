@@ -1,414 +1,248 @@
-import { useState, useEffect } from 'react';
+import { useEffect, useState } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
+import { useNavigate } from 'react-router-dom';
+import { selectPlayerDeck } from '../redux/slices/playerDeckSlice';
+import { generateEnemyDeck, selectEnemyDeck } from '../redux/slices/enemyDeckSlice';
+import { placeCard, selectBoard, resetBoard, updateBoard } from '../redux/slices/boardSlice';
+import { endGame, resetGame, selectGameStatus, selectTurn, switchTurn } from '../redux/slices/gameSlice';
+import { capturePokemon } from '../redux/slices/pokedexSlice';
+import { selectActiveRules } from '../redux/slices/rulesSlice';
 import Card from './Card';
-import { generateDeck, generateDefaultDeck } from '../utils/generateDeck';
-import { useDispatch } from 'react-redux';
-import { addToPokedex } from '../redux/slices/pokedexSlice';
-import { useSelector } from 'react-redux';
-import { checkCapture } from '../utils/logic';
 import '../styles/Game.css';
-import { addDeck, setActiveDeck } from '../redux/slices/playerDeckSlice'
+import { applyCaptureRules, isGameOver } from '../utils/logic';
+import Board from './Board';
 
-export default function Game({ setView }) {
-    const playerDeck = useSelector(state => {
-        const deck = state.playerDeck.decks.find(d => d.id === state.playerDeck.activeDeckId);
-        return deck?.cards || [];
-    });
-    const [enemyDeck, setEnemyDeck] = useState([]);
-    const [board, setBoard] = useState(Array(3).fill(null).map(() => Array(3).fill(null)));
-    const [selectedCard, setSelectedCard] = useState(null);
-    const [turn, setTurn] = useState('player');
-    const [gameOver, setGameOver] = useState(false);
-    const [result, setResult] = useState('');
-    const [capturedCard, setCapturedCard] = useState(null);
-    const [showCapture, setShowCapture] = useState(false);
-    const [initialEnemyDeck, setInitialEnemyDeck] = useState([]);
-    const [elementalGrid, setElementalGrid] = useState(Array(3).fill(null).map(() => Array(3).fill(null)));
+function Game() {
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
 
-    const dispatch = useDispatch();
+  const playerDeck = useSelector(selectPlayerDeck);
+  const enemyDeck = useSelector(selectEnemyDeck);
+  const board = useSelector(selectBoard);
+  const turn = useSelector(selectTurn);
+  const gameStatus = useSelector(selectGameStatus);
+  const activeRules = useSelector(selectActiveRules);
 
-    const activeRules = useSelector(state => state.rules.enabledRules);
-    const activeDeck = useSelector(state =>
-        state.playerDeck.decks.find(deck => deck.id === state.playerDeck.activeDeckId)
+  const [selectedCard, setSelectedCard] = useState(null);
+  const [showEndModal, setShowEndModal] = useState(false);
+  const [winner, setWinner] = useState(null);
+  const [captureChoice, setCaptureChoice] = useState(null);
+  const [captureConfirmed, setCaptureConfirmed] = useState(false);
+  const [elementTiles, setElementTiles] = useState([]);
+
+  const playerScore = board.filter(card => card?.owner === 'player').length;
+  const enemyScore = board.filter(card => card?.owner === 'enemy').length;
+
+  useEffect(() => {
+    dispatch(resetBoard());
+    dispatch(resetGame());
+    dispatch(generateEnemyDeck());
+
+    // Génération des cases élémentaires si la règle est active
+    if (activeRules.includes('Élémentaire')) {
+      const allTypes = [...playerDeck, ...enemyDeck]
+        .map(card => card.type)
+        .filter((v, i, a) => a.indexOf(v) === i); // unique
+
+      const count = Math.floor(Math.random() * 3) + 1; // 1 à 3 cases
+      const positions = new Set();
+      while (positions.size < count) {
+        const row = Math.floor(Math.random() * 3);
+        const col = Math.floor(Math.random() * 3);
+        positions.add(`${row}-${col}`);
+      }
+
+      const result = Array.from(positions).map(pos => {
+        const [row, col] = pos.split('-').map(Number);
+        const type = allTypes[Math.floor(Math.random() * allTypes.length)];
+        return { row, col, type };
+      });
+
+      setElementTiles(result);
+    } else {
+      setElementTiles([]);
+    }
+  }, [dispatch, activeRules, playerDeck, enemyDeck]);
+
+  const handleCardClick = (card, index) => {
+    if (turn !== 'player' || selectedCard || board.some(slot => slot?.id === card.id)) return;
+    setSelectedCard({ ...card, index });
+  };
+
+  const handleSlotClick = (index) => {
+    if (!selectedCard || board[index]) return;
+
+    const row = Math.floor(index / 3);
+    const col = index % 3;
+    const cardToPlace = { ...selectedCard, owner: 'player' };
+
+    dispatch(placeCard({ index, card: cardToPlace }));
+
+    const updated = applyCaptureRules(
+      board,
+      row,
+      col,
+      cardToPlace,
+      activeRules,
+      elementTiles.reduce((acc, { row, col, type }) => {
+        acc[`${row}-${col}`] = type;
+        return acc;
+      }, {})
     );
-    const capturedCards = useSelector(state => state.pokedex.captured);
+    dispatch(updateBoard(updated));
+    setSelectedCard(null);
 
-    useEffect(() => {
-        if (!playerDeck || playerDeck.length !== 5) {
-            console.error("Deck joueur invalide :", playerDeck);
+    if (isGameOver(updated)) {
+      dispatch(endGame());
+      resolveEndGame(updated);
+      return;
+    }
+
+    dispatch(switchTurn());
+
+    // Tour de l'ennemi
+    setTimeout(() => {
+      const availableIndexes = updated.map((c, i) => c === null ? i : null).filter(i => i !== null);
+      if (availableIndexes.length > 0) {
+        const aiCard = enemyDeck.find(c => !updated.some(b => b?.id === c.id));
+        if (aiCard) {
+          const aiIndex = availableIndexes[Math.floor(Math.random() * availableIndexes.length)];
+          dispatch(placeCard({ index: aiIndex, card: { ...aiCard, owner: 'enemy' } }));
+
+          const row = Math.floor(aiIndex / 3);
+          const col = aiIndex % 3;
+
+          const aiUpdated = applyCaptureRules(
+            updated,
+            row,
+            col,
+            { ...aiCard, owner: 'enemy' },
+            activeRules,
+            elementTiles.reduce((acc, { row, col, type }) => {
+              acc[`${row}-${col}`] = type;
+              return acc;
+            }, {})
+          );
+          dispatch(updateBoard(aiUpdated));
+
+          if (isGameOver(aiUpdated)) {
+            dispatch(endGame());
+            resolveEndGame(aiUpdated);
             return;
+          }
+
+          dispatch(switchTurn());
         }
+      }
+    }, 500);
+  };
 
-        startNewGame();
-    }, []);
+  const resolveEndGame = (finalBoard) => {
+    const playerFinal = finalBoard.filter(c => c?.owner === 'player').length;
+    const enemyFinal = finalBoard.filter(c => c?.owner === 'enemy').length;
 
-    const handleSelectCard = (card, index) => {
-        if (turn !== 'player') return;
+    setWinner(playerFinal > enemyFinal ? 'player' : playerFinal < enemyFinal ? 'enemy' : 'draw');
+    setShowEndModal(true);
+  };
 
-        const isOrderActive = activeRules.includes('Ordre');
+  const confirmCapture = () => {
+    if (captureChoice) {
+      dispatch(capturePokemon(captureChoice));
+      setCaptureConfirmed(true);
+    }
+  };
 
-        if (isOrderActive) {
-            if (index !== 0) return; // Seule la première carte est jouable
-        }
+  const restart = () => navigate('/game');
 
-        setSelectedCard({ ...card, index });
-    };
+  return (
+    <div className="game-container">
+      <button className="back-button" onClick={() => navigate('/')}>← Retour</button>
 
-    const handleCellClick = (row, col) => {
-        if (board[row][col] !== null) return;
-        if (!selectedCard || turn !== 'player') return;
+      <div className="game-header">
+        <h1 className="game-title">🎮 Poké-Triad</h1>
+        <p className="game-turn">Tour : {turn === 'player' ? 'Joueur' : 'Ennemi'}</p>
+        <p className="game-score">Score – Joueur : {playerScore} | Ennemi : {enemyScore}</p>
+        <p className="game-rules">
+          Règle{activeRules.length > 1 ? 's' : ''} en cours :{" "}
+          {activeRules.length > 0 ? activeRules.join(", ") : "aucune"}
+        </p>
+      </div>
 
-        const elementalType = elementalGrid[row][col];
-        let adjustedCard = { ...selectedCard, owner: 'player' };
-
-        if (activeRules.includes("Élémental") && elementalType) {
-            const match = selectedCard.element === elementalType;
-
-            adjustedCard = {
-                ...adjustedCard,
-                values: Object.fromEntries(
-                    Object.entries(selectedCard.values).map(([dir, val]) => [
-                        dir,
-                        Math.max(1, Math.min(10, val + (match ? 1 : -1)))
-                    ])
-                )
-            };
-        }
-
-        const newBoard = [...board.map(row => [...row])];
-        newBoard[row][col] = adjustedCard;
-        const boardAfterCapture = checkCapture(newBoard, row, col, adjustedCard, activeRules);
-
-        const newDeck = [...playerDeck];
-        newDeck.splice(selectedCard.index, 1);
-
-        setBoard(boardAfterCapture);
-        // setPlayerDeck supprimé
-        setSelectedCard(null);
-        setTurn('enemy');
-        checkEndGame(boardAfterCapture);
-
-        setTimeout(() => enemyPlay(boardAfterCapture), 1000);
-    };
-
-    const enemyPlay = (currentBoard) => {
-        if (enemyDeck.length === 0) return;
-
-        const emptyCells = [];
-        currentBoard.forEach((row, r) =>
-            row.forEach((cell, c) => {
-                if (!cell) emptyCells.push([r, c]);
-            })
-        );
-
-        if (emptyCells.length === 0) return;
-
-        const [row, col] = emptyCells[Math.floor(Math.random() * emptyCells.length)];
-        const card = enemyDeck[0];
-
-        const newBoard = [...currentBoard.map(row => [...row])];
-        newBoard[row][col] = { ...card, owner: 'enemy' };
-        const boardAfterCapture = checkCapture(newBoard, row, col, { ...card, owner: 'enemy' }, activeRules);
-
-        setBoard(boardAfterCapture);
-        checkEndGame(boardAfterCapture);
-        setEnemyDeck(enemyDeck.slice(1));
-        setTurn('player');
-    };
-
-    const countOwnedCards = (board) => {
-        let playerCount = 0;
-        let enemyCount = 0;
-
-        board.forEach(row =>
-            row.forEach(cell => {
-                if (cell?.owner === 'player') playerCount++;
-                if (cell?.owner === 'enemy') enemyCount++;
-            })
-        );
-
-        return { player: playerCount, enemy: enemyCount };
-    };
-
-    const checkEndGame = (board) => {
-        const totalPlaced = board.flat().filter(cell => cell !== null).length;
-        if (totalPlaced === 9) {
-            const { player, enemy } = countOwnedCards(board);
-            if (player > enemy) {
-                setShowCapture(true); // lance la fenêtre de capture
-            } else {
-                setResult(enemy > player ? 'Défaite... 😢' : 'Égalité ! 🤝');
-                setGameOver(true);
-            }
-        }
-    };
-
-    const startNewGame = async () => {
-        let deckToUse = activeDeck?.cards?.length === 5 ? activeDeck.cards : await generateDefaultDeck();
-
-        if (!Array.isArray(deckToUse) || deckToUse.length !== 5) {
-            console.warn("Aucun deck valide trouvé, génération d’un deck par défaut.");
-            deckToUse = await generateDefaultDeck();
-            dispatch(addDeck({
-                id: 'default-player',
-                name: 'Deck Joueur',
-                cards: deckToUse
-            }));
-            dispatch(setActiveDeck('default-player'));
-        }
-
-        deckToUse.forEach(card => {
-            if (!capturedCards.some(c => c.name === card.name)) {
-                dispatch(addToPokedex(card));
-            }
-        });
-
-        const enemy = await generateDeck();
-        setEnemyDeck(enemy);
-        setInitialEnemyDeck(enemy);
-        setBoard(Array(3).fill(null).map(() => Array(3).fill(null)));
-        setSelectedCard(null);
-        setTurn('player');
-        setGameOver(false);
-        setResult('');
-        setCapturedCard(null);
-        setShowCapture(false);
-        setElementalGrid(generateElementalGrid());
-    };
-
-    const generateElementalGrid = () => {
-        const elements = ['fire', 'water', 'grass', 'electric', 'ice', 'psychic', 'ghost', 'rock'];
-        const count = Math.floor(Math.random() * 4) + 2;
-
-        const positions = new Set();
-        while (positions.size < count) {
-            const row = Math.floor(Math.random() * 3);
-            const col = Math.floor(Math.random() * 3);
-            positions.add(`${row},${col}`);
-        }
-
-        const grid = Array(3).fill(null).map(() => Array(3).fill(null));
-        for (let pos of positions) {
-            const [r, c] = pos.split(',').map(Number);
-            grid[r][c] = elements[Math.floor(Math.random() * elements.length)];
-        }
-
-        return grid;
-    };
-
-    return (
-        <div style={{ textAlign: 'center', marginTop: '20px' }}>
-            <button
-                onClick={() => setView('home')}
-                style={{
-                    position: 'absolute',
-                    top: 20,
-                    left: 20,
-                    fontSize: '24px',
-                    background: 'none',
-                    border: 'none',
-                    cursor: 'pointer'
-                }}
-                title="Retour au menu"
-            >
-                ⬅️
-            </button>
-            <h1>Poké-Triad</h1>
-            <h3>Tour actuel : {turn === 'player' ? '👤 Joueur' : '💻 Ennemi'}</h3>
-
-            {(() => {
-                const { player, enemy } = countOwnedCards(board);
-                return <h3>Score : 🟦 Joueur {player} - {enemy} Ennemi 🟥</h3>;
-            })()}
-
-            {activeRules.length > 0 && (
-                <div style={{ marginTop: '10px' }}>
-                    <strong>Règles actives :</strong>
-                    <ul style={{ listStyle: 'none', padding: 0 }}>
-                        {activeRules.map((rule, index) => (
-                            <li key={index}>📜 {rule}</li>
-                        ))}
-                    </ul>
-                </div>
-            )}
-
-            <div style={{ display: 'flex', justifyContent: 'space-around', alignItems: 'flex-start' }}>
-                {/* Deck joueur */}
-                <div>
-                    <h2>Deck Joueur</h2>
-                    {playerDeck.map((card, index) => {
-                        const isOrderActive = activeRules.includes('Ordre');
-                        const isDisabled = isOrderActive && index !== 0;
-
-                        return (
-                            <div
-                                key={`player-${index}`}
-                                onClick={() => !isDisabled && handleSelectCard(card, index)}
-                                className={`${selectedCard?.index === index ? 'selected' : ''} ${isDisabled ? 'disabled' : ''}`}
-                            >
-                                <Card
-                                    name={card.name}
-                                    image={card.image}
-                                    element={card.element}
-                                    values={card.values}
-                                    owner="player"
-                                    isSelected={selectedCard?.index === index}
-                                />
-                            </div>
-                        );
-                    })}
-                </div>
-
-                {/* Plateau */}
-                <div className="board">
-                    {board.map((row, rowIndex) => (
-                        <div className="board-row" key={rowIndex}>
-                            {row.map((cell, colIndex) => (
-                                <div
-                                    className="board-cell"
-                                    key={colIndex}
-                                    onClick={() => handleCellClick(rowIndex, colIndex)}
-                                >
-                                    {cell ? (
-                                        <Card
-                                            name={cell.name}
-                                            image={cell.image}
-                                            element={cell.element}
-                                            values={cell.values}
-                                            owner={cell.owner}
-                                            onBoard={true}
-                                        />
-                                    ) : null}
-                                </div>
-                            ))}
-                        </div>
-                    ))}
-                </div>
-
-                {/* Deck ennemi */}
-                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-                    <h2>Deck Ennemi</h2>
-                    {enemyDeck.map((card, index) => (
-                        <div key={index} style={{ marginBottom: '10px' }}>
-                            {activeRules.includes('Open') ? (
-                                <>
-                                    <div
-                                        style={{
-                                            backgroundColor: '#f3f3f3',
-                                            borderRadius: '4px',
-                                            padding: '4px 8px',
-                                            marginBottom: '4px',
-                                            fontWeight: 'bold',
-                                            width: '120px',
-                                            textAlign: 'center'
-                                        }}
-                                    >
-                                        {card.name}
-                                    </div>
-                                    <Card
-                                        name={card.name}
-                                        image={card.image}
-                                        element={card.element}
-                                        values={card.values}
-                                        owner="enemy"
-                                    />
-                                </>
-                            ) : (
-                                <>
-                                    {/* Espace vide pour nom de carte */}
-                                    <div style={{ height: '18px', width: '120px', marginBottom: '4px' }} />
-                                    <div
-                                        style={{
-                                            width: '120px',
-                                            height: '150px',
-                                            backgroundImage: 'url(/images/card-back.png)',
-                                            backgroundSize: 'cover',
-                                            backgroundPosition: 'center',
-                                            borderRadius: '8px',
-                                            boxShadow: '0 0 4px black'
-                                        }}
-                                    />
-                                </>
-                            )}
-                        </div>
-                    ))}
-                </div>
+      <div className="game-main">
+        <div className="player-deck">
+          {playerDeck.map((card, index) => (
+            <div key={index} className="card-wrapper">
+              <p className="card-name">{card.frenchName || card.name}</p>
+              <Card
+                card={card}
+                source="player"
+                onClick={() => handleCardClick(card, index)}
+                selected={selectedCard?.id === card.id}
+              />
             </div>
+          ))}
+        </div>
 
-            {
-                gameOver && (
-                    <div style={{
-                        position: 'fixed',
-                        top: 0, left: 0,
-                        width: '100%',
-                        height: '100%',
-                        backgroundColor: 'rgba(0,0,0,0.6)',
-                        display: 'flex',
-                        justifyContent: 'center',
-                        alignItems: 'center',
-                        zIndex: 10
-                    }}>
-                        <div style={{
-                            backgroundColor: 'white',
-                            padding: '30px',
-                            borderRadius: '10px',
-                            textAlign: 'center',
-                            boxShadow: '0 0 20px black'
-                        }}>
-                            <h2>{result}</h2>
-                            <button onClick={startNewGame}>Rejouer</button>
-                            <button onClick={() => setView('home')}>Retour au menu</button>
-                        </div>
-                    </div>
-                )
-            }
-            {
-                showCapture && (
-                    <div style={{
-                        position: 'fixed',
-                        top: 0, left: 0,
-                        width: '100%',
-                        height: '100%',
-                        backgroundColor: 'rgba(0,0,0,0.7)',
-                        display: 'flex',
-                        justifyContent: 'center',
-                        alignItems: 'center',
-                        zIndex: 20
-                    }}>
-                        <div style={{
-                            backgroundColor: 'white',
-                            padding: '20px',
-                            borderRadius: '10px',
-                            textAlign: 'center',
-                            maxWidth: '600px'
-                        }}>
-                            <h2>Victoire ! Choisissez une carte à capturer :</h2>
-                            <div style={{ display: 'flex', justifyContent: 'center', flexWrap: 'wrap' }}>
-                                {initialEnemyDeck.map((card, index) => (
-                                    <div
-                                        key={index}
-                                        onClick={() => {
-                                            dispatch(addToPokedex(card));
-                                            setCapturedCard(card);
-                                            setShowCapture(false);
-                                            setGameOver(true);
-                                            setResult(`Bravo, vous avez attrapé ${card.name} !`);
-                                        }}
-                                        style={{ cursor: 'pointer', margin: '5px' }}
-                                    >
-                                        <Card
-                                            name={card.name}
-                                            image={card.image}
-                                            element={card.element}
-                                            values={card.values}
-                                            owner="enemy"
-                                        />
-                                    </div>
-                                ))}
-                            </div>
-                        </div>
-                    </div>
-                )
-            }
-        </div >
-    );
+        <Board board={[board.slice(0, 3), board.slice(3, 6), board.slice(6, 9)]}
+          onCellClick={(r, c) => handleSlotClick(r * 3 + c)}
+          elementTiles={elementTiles}
+        />
+
+        <div className="enemy-deck">
+          {enemyDeck.map((card, index) => (
+            <div key={index} className="card-wrapper">
+              <p className="card-name">???</p>
+              <Card card={{ ...card, hidden: true }} source="enemy" />
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {showEndModal && (
+        <div className="end-modal">
+          {winner === 'draw' && (
+            <>
+              <h2>Égalité...</h2>
+              <button onClick={restart}>Rejouer</button>
+              <button onClick={() => navigate('/')}>Retour au menu</button>
+            </>
+          )}
+          {winner === 'enemy' && (
+            <>
+              <h2>Perdu...</h2>
+              <button onClick={restart}>Rejouer</button>
+              <button onClick={() => navigate('/')}>Retour au menu</button>
+            </>
+          )}
+          {winner === 'player' && !captureConfirmed && (
+            <>
+              <h2>Victoire ! Choisissez un Pokémon à capturer :</h2>
+              <div className="capture-choices">
+                {enemyDeck.map((card, index) => (
+                  <div
+                    key={index}
+                    className={`card-wrapper ${captureChoice?.id === card.id ? 'selected' : ''}`}
+                    onClick={() => setCaptureChoice(card)}
+                  >
+                    <p className="card-name">{card.frenchName || card.name}</p>
+                    <Card card={card} source="enemy" />
+                  </div>
+                ))}
+              </div>
+              <button onClick={confirmCapture}>Capturer</button>
+            </>
+          )}
+          {captureConfirmed && (
+            <>
+              <h2>Bravo, vous avez attrapé {captureChoice.frenchName || captureChoice.name} !</h2>
+              <button onClick={restart}>Rejouer</button>
+              <button onClick={() => navigate('/')}>Retour au menu</button>
+            </>
+          )}
+        </div>
+      )}
+    </div>
+  );
 }
+
+export default Game;

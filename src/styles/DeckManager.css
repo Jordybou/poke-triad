@@ -5,68 +5,97 @@
   font-family: var(--gba-font);
   background-color: var(--gba-bg);
   color: var(--gba-text);
+  min-height: 100vh;
 }
 
 .deck-manager-header {
   display: flex;
   align-items: center;
+  justify-content: center;
   gap: 10px;
   margin-bottom: 20px;
+  position: relative;
 }
 
 .deck-manager-header h1 {
+  font-size: 16px;
+  text-transform: uppercase;
   margin: 0 auto;
-  text-align: center;
 }
 
 .return-button {
-  background: var(--gba-button-bg);
-  color: var(--gba-button-text);
-  border: 2px solid var(--gba-border);
+  position: absolute;
+  left: 0;
+  background-color: #fff;
+  color: #000;
+  border: 2px solid #333;
+  border-radius: 6px;
+  padding: 4px 12px;
+  font-size: 12px;
   font-family: var(--gba-font);
-  padding: 6px 10px;
   cursor: pointer;
+}
+
+.return-button:hover {
+  background-color: #eee;
 }
 
 .deck-list {
   display: flex;
   flex-wrap: wrap;
   justify-content: center;
-  gap: 20px;
+  gap: 16px;
 }
 
 .deck-box {
-  border: 2px solid var(--gba-border);
-  background-color: white;
-  padding: 12px;
-  border-radius: 8px;
   width: 260px;
+  background-color: #fff;
+  border: 2px solid var(--gba-border);
+  border-radius: 8px;
+  padding: 12px;
+  box-shadow: var(--gba-shadow);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
 }
 
 .deck-box.active {
   border-color: var(--gba-accent);
-  box-shadow: 0 0 8px var(--gba-accent);
+  box-shadow: 0 0 10px var(--gba-accent);
+}
+
+.deck-box h3 {
+  font-size: 14px;
+  margin-bottom: 8px;
+  text-align: center;
 }
 
 .deck-cards {
   display: flex;
   flex-wrap: wrap;
   justify-content: center;
-  gap: 5px;
+  gap: 6px;
   margin-bottom: 10px;
 }
 
+.deck-actions {
+  display: flex;
+  justify-content: center;
+  gap: 6px;
+}
+
 .deck-actions button {
-  margin: 2px;
-  padding: 4px 8px;
-  background: var(--gba-button-bg);
-  color: white;
-  border: none;
   font-family: var(--gba-font);
+  font-size: 10px;
+  padding: 6px 10px;
+  border: 2px solid var(--gba-border);
+  background-color: var(--gba-button-bg);
+  color: var(--gba-button-text);
+  border-radius: 6px;
   cursor: pointer;
-  border-radius: 4px;
+  box-shadow: var(--gba-shadow);
 }
 
 .deck-actions button:hover {
-  background: var(--gba-button-hover);
+  background-color: var(--gba-button-hover);
 }

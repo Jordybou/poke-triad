@@ -1,37 +1,38 @@
 import { createSlice } from '@reduxjs/toolkit';
 
+const allRules = ['Ordre', 'Elémental', 'Open', 'Combo', 'Plus', 'Same', 'Mur', 'Chaos'];
+
 const initialState = {
-  enabledRules: [],
-  unlockedRules: [
-    'Combo',
-    'Plus',
-    'Identique',
-    'Mur',
-    'Ordre',
-    'Aléatoire',
-    'Élémental',
-    'Open'
-  ],
+  unlockedRules: [], // par exemple ['Ordre', 'Mur'] si 2 badges débloqués
+  activeRules: [],   // les règles actuellement activées par le joueur
 };
 
-export const rulesSlice = createSlice({
+const rulesSlice = createSlice({
   name: 'rules',
   initialState,
   reducers: {
-    toggleRule: (state, action) => {
-      const rule = action.payload;
-      if (state.enabledRules.includes(rule)) {
-        state.enabledRules = state.enabledRules.filter(r => r !== rule);
-      } else {
-        state.enabledRules.push(rule);
+    unlockRule(state, action) {
+      if (!state.unlockedRules.includes(action.payload)) {
+        state.unlockedRules.push(action.payload);
+        state.activeRules.push(action.payload); // activée par défaut
       }
     },
-    resetRules: (state) => {
-      state.enabledRules = [];
-    }
+    toggleRule(state, action) {
+      const rule = action.payload;
+      if (state.activeRules.includes(rule)) {
+        state.activeRules = state.activeRules.filter(r => r !== rule);
+      } else if (state.unlockedRules.includes(rule)) {
+        state.activeRules.push(rule);
+      }
+    },
+    resetRules(state) {
+      state.activeRules = [...state.unlockedRules];
+    },
   },
 });
 
-export const { toggleRule, resetRules } = rulesSlice.actions;
-export const ALL_RULES = ['Mur', 'Combo', 'Identique', 'Plus', 'Open', 'Élémental', 'Ordre', 'Aléatoire'];
+export const { unlockRule, toggleRule, resetRules } = rulesSlice.actions;
+export const selectUnlockedRules = (state) => state.rules.unlockedRules;
+export const selectActiveRules = (state) => state.rules.activeRules;
+export const getAllRules = () => allRules;
 export default rulesSlice.reducer;

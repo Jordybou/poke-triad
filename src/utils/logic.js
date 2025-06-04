@@ -1,165 +1,176 @@
-export const checkCapture = (board, row, col, placedCard, activeRules) => {
-    const isIdentiqueActive = activeRules.includes('Identique');
-    const isMurActive = activeRules.includes('Mur');
-    const isPlusActive = activeRules.includes('Plus');
-    const isComboActive = activeRules.includes('Combo');
+// --- Constantes de direction ---
+const directions = [
+  { dr: -1, dc: 0, side: 'top', opposite: 'bottom' },
+  { dr: 1, dc: 0, side: 'bottom', opposite: 'top' },
+  { dr: 0, dc: -1, side: 'left', opposite: 'right' },
+  { dr: 0, dc: 1, side: 'right', opposite: 'left' },
+];
 
-    const matchedSameValues = [];
-    const newBoard = board.map(row => [...row]);
-
-    const directions = [
-        { dr: -1, dc: 0, side: 'top', opposite: 'bottom' },
-        { dr: 1, dc: 0, side: 'bottom', opposite: 'top' },
-        { dr: 0, dc: -1, side: 'left', opposite: 'right' },
-        { dr: 0, dc: 1, side: 'right', opposite: 'left' },
-    ];
-
-    const comboQueue = [];
-
-    if (isPlusActive) {
-        const sums = {};
-        directions.forEach(({ dr, dc, side, opposite }) => {
-            const newRow = row + dr;
-            const newCol = col + dc;
-
-            if (
-                newRow >= 0 && newRow < 3 &&
-                newCol >= 0 && newCol < 3 &&
-                newBoard[newRow][newCol]
-            ) {
-                const adjacentCard = newBoard[newRow][newCol];
-                if (adjacentCard.owner !== placedCard.owner) {
-                    const sum = placedCard.values[side] + adjacentCard.values[opposite];
-                    if (!sums[sum]) sums[sum] = [];
-                    sums[sum].push({ row: newRow, col: newCol });
-                }
-            }
-        });
-
-        Object.values(sums).forEach(matches => {
-            if (matches.length >= 2) {
-                matches.forEach(({ row, col }) => {
-                    const targetCard = newBoard[row][col];
-                    if (targetCard.owner !== placedCard.owner) {
-                        newBoard[row][col] = { ...targetCard, owner: placedCard.owner };
-                        if (isComboActive) {
-                            comboQueue.push({ row, col, card: newBoard[row][col] });
-                        }
-                    }
-                });
-            }
-        });
-    }
-
-    directions.forEach(({ dr, dc, side, opposite }) => {
-        const newRow = row + dr;
-        const newCol = col + dc;
-
-        if (
-            newRow >= 0 && newRow < 3 &&
-            newCol >= 0 && newCol < 3 &&
-            newBoard[newRow][newCol]
-        ) {
-            const adjacentCard = newBoard[newRow][newCol];
-            const placedValue = placedCard.values[side];
-            const adjacentValue = adjacentCard.values[opposite];
-
-            if (adjacentCard.owner !== placedCard.owner) {
-                if (placedValue > adjacentValue) {
-                    newBoard[newRow][newCol] = {
-                        ...adjacentCard,
-                        owner: placedCard.owner
-                    };
-                }
-
-                if (placedValue === adjacentValue && isIdentiqueActive) {
-                    matchedSameValues.push({ row: newRow, col: newCol });
-                }
-            }
-        }
-    });
-
-    if (isIdentiqueActive && matchedSameValues.length >= 2) {
-        matchedSameValues.forEach(({ row, col }) => {
-            const targetCard = newBoard[row][col];
-            if (targetCard.owner !== placedCard.owner) {
-                newBoard[row][col] = {
-                    ...targetCard,
-                    owner: placedCard.owner
-                };
-                if (isComboActive) {
-                    comboQueue.push({ row, col, card: newBoard[row][col] });
-                }
-            }
-        });
-    }
-
-    if (isMurActive) {
-        if (col === 0 && newBoard[row][2]) {
-            const targetCard = newBoard[row][2];
-            if (targetCard.owner !== placedCard.owner) {
-                const left = placedCard.values.left;
-                const right = targetCard.values.right;
-                if (left > right) {
-                    newBoard[row][2] = { ...targetCard, owner: placedCard.owner };
-                }
-            }
-        } else if (col === 2 && newBoard[row][0]) {
-            const targetCard = newBoard[row][0];
-            if (targetCard.owner !== placedCard.owner) {
-                const right = placedCard.values.right;
-                const left = targetCard.values.left;
-                if (right > left) {
-                    newBoard[row][0] = { ...targetCard, owner: placedCard.owner };
-                }
-            }
-        }
-
-        if (row === 0 && newBoard[2][col]) {
-            const targetCard = newBoard[2][col];
-            if (targetCard.owner !== placedCard.owner) {
-                const top = placedCard.values.top;
-                const bottom = targetCard.values.bottom;
-                if (top > bottom) {
-                    newBoard[2][col] = { ...targetCard, owner: placedCard.owner };
-                }
-            }
-        } else if (row === 2 && newBoard[0][col]) {
-            const targetCard = newBoard[0][col];
-            if (targetCard.owner !== placedCard.owner) {
-                const bottom = placedCard.values.bottom;
-                const top = targetCard.values.top;
-                if (bottom > top) {
-                    newBoard[0][col] = { ...targetCard, owner: placedCard.owner };
-                }
-            }
-        }
-    }
-
-    while (comboQueue.length) {
-        const { row: comboRow, col: comboCol, card } = comboQueue.shift();
-        directions.forEach(({ dr, dc, side, opposite }) => {
-            const newRow = comboRow + dr;
-            const newCol = comboCol + dc;
-
-            if (
-                newRow >= 0 && newRow < 3 &&
-                newCol >= 0 && newCol < 3 &&
-                newBoard[newRow][newCol]
-            ) {
-                const adjacentCard = newBoard[newRow][newCol];
-                const placedValue = card.values[side];
-                const adjacentValue = adjacentCard.values[opposite];
-
-                if (adjacentCard.owner !== card.owner && placedValue > adjacentValue) {
-                    newBoard[newRow][newCol] = {
-                        ...adjacentCard,
-                        owner: card.owner
-                    };
-                }
-            }
-        });
-    }
-
-    return newBoard;
+// --- Weaknesses by type (English, aligned with PokéAPI) ---
+const weaknesses = {
+  normal: ['fighting'],
+  fire: ['water', 'ground', 'rock'],
+  water: ['electric', 'grass'],
+  grass: ['fire', 'ice', 'flying', 'bug'],
+  electric: ['ground'],
+  ice: ['fire', 'fighting', 'rock', 'steel'],
+  fighting: ['flying', 'psychic', 'fairy'],
+  poison: ['ground', 'psychic'],
+  ground: ['water', 'grass', 'ice'],
+  flying: ['electric', 'ice', 'rock'],
+  psychic: ['bug', 'ghost', 'dark'],
+  bug: ['fire', 'flying', 'rock'],
+  rock: ['water', 'grass', 'fighting', 'ground', 'steel'],
+  ghost: ['ghost', 'dark'],
+  dragon: ['ice', 'fairy', 'dragon'],
+  dark: ['fighting', 'bug', 'fairy'],
+  steel: ['fire', 'fighting', 'ground'],
+  fairy: ['steel', 'poison'],
 };
+
+// --- Fonction : Capture Classique ---
+function applyClassicCapture(board, row, col, card, newBoard) {
+  directions.forEach(({ dr, dc, side, opposite }) => {
+    const nr = row + dr, nc = col + dc;
+    if (nr >= 0 && nr < 3 && nc >= 0 && nc < 3) {
+      const adjCard = newBoard[nr][nc];
+      if (adjCard && adjCard.owner !== card.owner) {
+        if (card.values[side] > adjCard.values[opposite]) {
+          newBoard[nr][nc] = { ...adjCard, owner: card.owner };
+        }
+      }
+    }
+  });
+}
+
+// --- Fonction : Règle Identique ---
+function applyIdentique(board, row, col, card, newBoard, isCombo, comboQueue) {
+  const matched = [];
+  directions.forEach(({ dr, dc, side, opposite }) => {
+    const nr = row + dr, nc = col + dc;
+    if (nr >= 0 && nr < 3 && nc >= 0 && nc < 3) {
+      const adjCard = newBoard[nr][nc];
+      if (adjCard && adjCard.owner !== card.owner && card.values[side] === adjCard.values[opposite]) {
+        matched.push({ row: nr, col: nc });
+      }
+    }
+  });
+  if (matched.length >= 2) {
+    matched.forEach(({ row, col }) => {
+      newBoard[row][col] = { ...newBoard[row][col], owner: card.owner };
+      if (isCombo) comboQueue.push({ row, col, card: newBoard[row][col] });
+    });
+  }
+}
+
+// --- Fonction : Règle Plus ---
+function applyPlus(board, row, col, card, newBoard, isCombo, comboQueue) {
+  const sums = {};
+  directions.forEach(({ dr, dc, side, opposite }) => {
+    const nr = row + dr, nc = col + dc;
+    if (nr >= 0 && nr < 3 && nc >= 0 && nc < 3) {
+      const adjCard = newBoard[nr][nc];
+      if (adjCard && adjCard.owner !== card.owner) {
+        const sum = card.values[side] + adjCard.values[opposite];
+        if (!sums[sum]) sums[sum] = [];
+        sums[sum].push({ row: nr, col: nc });
+      }
+    }
+  });
+
+  Object.values(sums).forEach(matches => {
+    if (matches.length >= 2) {
+      matches.forEach(({ row, col }) => {
+        newBoard[row][col] = { ...newBoard[row][col], owner: card.owner };
+        if (isCombo) comboQueue.push({ row, col, card: newBoard[row][col] });
+      });
+    }
+  });
+}
+
+// --- Fonction : Règle Mur ---
+function applyWall(board, row, col, card, newBoard) {
+  const edges = [
+    { check: col === 0, rowOffset: 0, colOffset: 2, side: 'left', opposite: 'right' },
+    { check: col === 2, rowOffset: 0, colOffset: -2, side: 'right', opposite: 'left' },
+    { check: row === 0, rowOffset: 2, colOffset: 0, side: 'top', opposite: 'bottom' },
+    { check: row === 2, rowOffset: -2, colOffset: 0, side: 'bottom', opposite: 'top' },
+  ];
+
+  edges.forEach(({ check, rowOffset, colOffset, side, opposite }) => {
+    if (check) {
+      const r2 = row + rowOffset, c2 = col + colOffset;
+      if (r2 >= 0 && r2 < 3 && c2 >= 0 && c2 < 3) {
+        const target = newBoard[r2][c2];
+        if (target && target.owner !== card.owner && card.values[side] > target.values[opposite]) {
+          newBoard[r2][c2] = { ...target, owner: card.owner };
+        }
+      }
+    }
+  });
+}
+
+// --- Fonction : Règle Combo ---
+function applyCombo(board, comboQueue, newBoard) {
+  while (comboQueue.length) {
+    const { row, col, card } = comboQueue.shift();
+    directions.forEach(({ dr, dc, side, opposite }) => {
+      const nr = row + dr, nc = col + dc;
+      if (nr >= 0 && nr < 3 && nc >= 0 && nc < 3) {
+        const adjCard = newBoard[nr][nc];
+        if (adjCard && adjCard.owner !== card.owner && card.values[side] > adjCard.values[opposite]) {
+          newBoard[nr][nc] = { ...adjCard, owner: card.owner };
+        }
+      }
+    });
+  }
+}
+
+// --- Fonction : Élémentaire (bonus/malus en fonction de la case) ---
+function applyElemental(card, elementMap) {
+  const key = `${card.row}-${card.col}`;
+  const tileType = elementMap[key];
+  if (!tileType) return card;
+
+  let mod = 0;
+  if (card.type === tileType) mod = 1;
+  else if (weaknesses[card.type]?.includes(tileType)) mod = -1;
+
+  const adjusted = { ...card, values: { ...card.values } };
+  for (let key in adjusted.values) {
+    adjusted.values[key] = Math.max(1, adjusted.values[key] + mod);
+  }
+  return adjusted;
+}
+
+// --- Fonction principale à appeler depuis Game.jsx ---
+export function applyCaptureRules(board, row, col, placedCard, activeRules, positionElements = {}) {
+  const rulesSet = new Set(activeRules.map(r => r.trim().toLowerCase()));
+  const isIdentique = rulesSet.has('identique');
+  const isMur = rulesSet.has('mur');
+  const isPlus = rulesSet.has('plus');
+  const isCombo = rulesSet.has('combo');
+  const isElemental = rulesSet.has('élémentaire');
+
+  const newBoard = board.map(row => [...row]);
+  const comboQueue = [];
+
+  let card = { ...placedCard, row, col };
+
+  if (isElemental) {
+    card = applyElemental(card, positionElements);
+  }
+
+  applyClassicCapture(board, row, col, card, newBoard);
+  if (isIdentique) applyIdentique(board, row, col, card, newBoard, isCombo, comboQueue);
+  if (isPlus) applyPlus(board, row, col, card, newBoard, isCombo, comboQueue);
+  if (isMur) applyWall(board, row, col, card, newBoard);
+  if (isCombo) applyCombo(board, comboQueue, newBoard);
+
+  return newBoard;
+}
+
+// --- Vérifie si la partie est terminée ---
+export function isGameOver(board) {
+  return board.flat().filter(Boolean).length === 9;
+}
