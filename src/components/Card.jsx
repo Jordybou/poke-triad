@@ -12,13 +12,15 @@ function Card({
   bonus = null,
   malus = null,
   element = null,
+  flash = false, // 👈 Nouvelle prop pour effet flash
 }) {
   if (!card) return null;
 
   const borderColor = owner === 'player' ? 'blue-border' : 'red-border';
   const bonusClass = bonus ? 'card-bonus' : '';
   const malusClass = malus ? 'card-malus' : '';
-  const cardClasses = `card ${borderColor} ${selected ? 'selected' : ''} ${zoomable ? 'zoomable' : ''} ${bonusClass} ${malusClass}`;
+  const flashClass = flash ? 'flash-effect' : '';
+  const cardClasses = `card ${borderColor} ${selected ? 'selected' : ''} ${zoomable ? 'zoomable' : ''} ${bonusClass} ${malusClass} ${flashClass}`;
 
   const getTypeIcon = (type) => {
     if (!type) return null;
@@ -35,7 +37,9 @@ function Card({
 
   return (
     <div className={cardClasses} onClick={onClick}>
-      {(inDeck && !faceDown) && <div className="card-name">{card.frenchName || card.name}</div>}
+      {(inDeck && !faceDown && !card.hidden) && (
+        <div className="card-name">{card.frenchName || card.name}</div>
+      )}
 
       {(faceDown || card.hidden) ? (
         <div className="card-back-wrapper">
@@ -50,12 +54,11 @@ function Card({
 
           <img src={card.image} alt={card.frenchName || card.name} className="card-image" />
 
-          {/* Type du Pokémon (avec fallback emoji si l’image échoue) */}
           {card.type && (
             <img
               src={getTypeIcon(card.type)}
               alt={card.type}
-              className="card-type-icon"
+              className="card-element-icon"
               onError={(e) => {
                 const emoji = getTypeEmoji(card.type);
                 e.target.replaceWith(Object.assign(document.createElement('span'), {
@@ -66,7 +69,6 @@ function Card({
             />
           )}
 
-          {/* Élément de la case (avec fallback emoji si l’image échoue) */}
           {element && (
             <img
               src={getTypeIcon(element)}

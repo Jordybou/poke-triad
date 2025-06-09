@@ -1,3 +1,4 @@
+// --- Convertit les statistiques en valeurs directionnelles entre 1 et 10
 export function generateCardValuesFromStats(stats) {
   return {
     top: convertStatToValue(getStat(stats, 'attack')),
@@ -8,12 +9,11 @@ export function generateCardValuesFromStats(stats) {
 }
 
 function getStat(stats, statName) {
-  const found = stats.find(s => s.stat.name === statName);
-  return found ? found.base_stat : 0;
+  return stats.find(s => s.stat.name === statName)?.base_stat || 0;
 }
 
 function convertStatToValue(stat) {
-  // Échelle basée sur un maximum de 255 (stats max sur PokéAPI)
+  // Valeur normalisée entre 1 et 10 sur base d’un max de 255
   const value = Math.round((stat / 255) * 10);
-  return Math.max(1, Math.min(value, 10));
+  return Math.min(Math.max(1, value), 10);
 }

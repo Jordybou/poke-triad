@@ -17,8 +17,10 @@ const pokedexSlice = createSlice({
         state.captured.push(newCard);
 
         const capturedCount = state.captured.length;
-        const newBadgeCount = BADGES.filter(b => capturedCount >= b.threshold).length;
-        state.badgeCount = newBadgeCount;
+        if (Array.isArray(BADGES)) {
+          const newBadgeCount = BADGES.filter(b => capturedCount >= b.threshold).length;
+          state.badgeCount = newBadgeCount;
+        }
       }
     },
     setAllPokemon(state, action) {

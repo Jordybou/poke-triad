@@ -16,6 +16,13 @@ export default function DeckManager() {
   const decks = useSelector(selectDecks);
   const activeId = useSelector(selectActiveDeckId);
 
+  const handleDelete = (deckId) => {
+    const confirm = window.confirm('Êtes-vous sûr de vouloir supprimer ce deck ?');
+    if (confirm) {
+      dispatch(deleteDeck(deckId));
+    }
+  };
+
   return (
     <div className="deck-manager-container">
       <button className="back-button" onClick={() => navigate('/')}>← Retour</button>
@@ -29,14 +36,20 @@ export default function DeckManager() {
             <div key={deck.id} className={`deck-box ${deck.id === activeId ? 'active' : ''}`}>
               <h3>{deck.name || `Deck ${index + 1}`}</h3>
               <div className="deck-cards">
-                {deck.cards.map((card, idx) => (
-                  <Card key={idx} card={card} owner="player" inDeck />
+                {deck.cards.map((card) => (
+                  <Card key={card.id} card={card} owner="player" inDeck />
                 ))}
               </div>
               <div className="deck-actions">
-                <button onClick={() => dispatch(setActiveDeck(deck.id))}>Activer</button>
-                <button onClick={() => dispatch(duplicateDeck(deck))}>Dupliquer</button>
-                <button onClick={() => dispatch(deleteDeck(deck.id))}>Supprimer</button>
+                <button onClick={() => dispatch(setActiveDeck(deck.id))}>
+                  Activer
+                </button>
+                <button onClick={() => dispatch(duplicateDeck(deck))}>
+                  Dupliquer
+                </button>
+                <button onClick={() => handleDelete(deck.id)}>
+                  Supprimer
+                </button>
               </div>
             </div>
           ))}

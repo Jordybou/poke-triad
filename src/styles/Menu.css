@@ -3,21 +3,23 @@
 .menu-button {
   width: 200px;
   padding: 12px;
-  font-size: 18px;
+  font-size: 16px;
   margin: 10px auto;
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 8px;
-  border: 2px solid #222;
+  border: 2px solid var(--gba-border);
   border-radius: 8px;
-  background-color: #e0e0e0;
-  font-family: 'Press Start 2P', cursive;
+  background-color: var(--gba-button-bg);
+  color: var(--gba-button-text);
+  font-family: var(--gba-font);
   cursor: pointer;
-  transition: 0.2s;
+  box-shadow: var(--gba-shadow);
+  transition: background-color 0.2s ease, transform 0.2s ease;
 }
 
 .menu-button:hover {
-  background-color: #d0d0d0;
-  transform: scale(1.02);
+  background-color: var(--gba-button-hover);
+  transform: scale(1.05);
 }

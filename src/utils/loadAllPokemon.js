@@ -17,7 +17,8 @@ async function fetchPokemonData(id) {
 
     return {
       id,
-      name,
+      name: res.data.name,
+      frenchName: name,
       image: res.data.sprites.other['official-artwork'].front_default || '/images/missing.png',
       type: res.data.types[0].type.name,
       values: generateCardValuesFromStats(res.data.stats),

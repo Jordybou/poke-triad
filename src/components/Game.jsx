@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
-import { selectPlayerDeck, setPlayerDeck } from '../redux/slices/playerDeckSlice';
-import { generateEnemyDeck, selectEnemyDeck } from '../redux/slices/enemyDeckSlice';
+import { selectPlayerDeck, setPlayerDeck, removeCardFromPlayerDeck } from '../redux/slices/playerDeckSlice';
+import { generateEnemyDeck, selectEnemyDeck, removeCardFromEnemyDeck } from '../redux/slices/enemyDeckSlice';
 import { placeCard, selectBoard, resetBoard, setBoard } from '../redux/slices/boardSlice';
 import { endGame, resetGame, selectTurn, switchTurn } from '../redux/slices/gameSlice';
 import { capturePokemon } from '../redux/slices/pokedexSlice';
@@ -11,6 +11,7 @@ import Card from './Card';
 import '../styles/Game.css';
 import { applyCaptureRules, isGameOver } from '../utils/logic';
 import Board from './Board';
+import { generateDefaultDeck } from '../utils/generate';
 
 function Game() {
   const dispatch = useDispatch();
@@ -22,7 +23,6 @@ function Game() {
   const flatBoard = board?.flat?.() || [];
   const turn = useSelector(selectTurn);
   const activeRules = useSelector(selectActiveRules);
-  const captured = useSelector((state) => state.pokedex.captured);
 
   const [selectedCard, setSelectedCard] = useState(null);
   const [showEndModal, setShowEndModal] = useState(false);
@@ -35,15 +35,19 @@ function Game() {
   const enemyScore = flatBoard.filter(card => card?.owner === 'enemy').length;
 
   useEffect(() => {
-    dispatch(resetBoard());
-    dispatch(resetGame());
+    async function initializeGame() {
+      dispatch(resetBoard());
+      dispatch(resetGame());
 
-    if (playerDeck.length === 0) {
-      const fromCaptured = captured.slice(0, 5);
-      dispatch(setPlayerDeck(fromCaptured));
+      if (playerDeck.length === 0) {
+        const defaultDeck = await generateDefaultDeck();
+        dispatch(setPlayerDeck(defaultDeck));
+      }
+
+      dispatch(generateEnemyDeck());
     }
 
-    dispatch(generateEnemyDeck());
+    initializeGame();
   }, [dispatch]);
 
   useEffect(() => {
@@ -79,12 +83,21 @@ function Game() {
   };
 
   const handleSlotClick = (row, col) => {
-    if (!selectedCard) return;
+    if (!selectedCard || board[row][col]) return;
 
-    if (board[row][col]) return;
+    const cardToPlace = {
+      ...selectedCard,
+      owner: 'player',
+      values: {
+        top: selectedCard.top,
+        right: selectedCard.right,
+        bottom: selectedCard.bottom,
+        left: selectedCard.left,
+      },
+    };
 
-    const cardToPlace = { ...selectedCard, owner: 'player' };
     dispatch(placeCard({ row, col, card: cardToPlace }));
+    dispatch(removeCardFromPlayerDeck(selectedCard.id));
 
     const updated = applyCaptureRules(
       board,
@@ -97,8 +110,16 @@ function Game() {
         return acc;
       }, {})
     );
+
     dispatch(setBoard(updated));
-    console.log('✅ Board mis à jour !', updated);
+
+    setTimeout(() => {
+      const noFlash = updated.map(row =>
+        row.map(cell => (cell ? { ...cell, flash: false } : null))
+      );
+      dispatch(setBoard(noFlash));
+    }, 500);
+
     setSelectedCard(null);
 
     if (isGameOver(updated)) {
@@ -110,50 +131,66 @@ function Game() {
     dispatch(switchTurn());
 
     setTimeout(() => {
-      const availableCoords = [];
-      updated.forEach((rowArr, rowIdx) => {
-        rowArr.forEach((cell, colIdx) => {
-          if (!cell) availableCoords.push({ row: rowIdx, col: colIdx });
-        });
-      });
+      const coords = [];
+      updated.forEach((r, ri) =>
+        r.forEach((cell, ci) => {
+          if (!cell) coords.push({ row: ri, col: ci });
+        })
+      );
 
-      if (availableCoords.length > 0) {
-        const aiCard = enemyDeck.find(c => !updated.flat().some(b => b?.id === c.id));
-        if (aiCard) {
-          const { row: aiRow, col: aiCol } = availableCoords[Math.floor(Math.random() * availableCoords.length)];
-          dispatch(placeCard({ row: aiRow, col: aiCol, card: { ...aiCard, owner: 'enemy' } }));
+      const aiCard = enemyDeck.find(c => !updated.flat().some(b => b?.id === c.id));
+      if (aiCard && coords.length > 0) {
+        const { row: aiRow, col: aiCol } = coords[Math.floor(Math.random() * coords.length)];
+        const aiToPlace = {
+          ...aiCard,
+          owner: 'enemy',
+          values: {
+            top: aiCard.top,
+            right: aiCard.right,
+            bottom: aiCard.bottom,
+            left: aiCard.left,
+          },
+        };
 
-          const aiUpdated = applyCaptureRules(
-            updated,
-            aiRow,
-            aiCol,
-            { ...aiCard, owner: 'enemy' },
-            activeRules,
-            elementTiles.reduce((acc, { row, col, type }) => {
-              acc[`${row}-${col}`] = type;
-              return acc;
-            }, {})
+        dispatch(placeCard({ row: aiRow, col: aiCol, card: aiToPlace }));
+        dispatch(removeCardFromEnemyDeck(aiCard.id));
+
+        const aiUpdated = applyCaptureRules(
+          updated,
+          aiRow,
+          aiCol,
+          aiToPlace,
+          activeRules,
+          elementTiles.reduce((acc, { row, col, type }) => {
+            acc[`${row}-${col}`] = type;
+            return acc;
+          }, {})
+        );
+
+        dispatch(setBoard(aiUpdated));
+
+        setTimeout(() => {
+          const cleared = aiUpdated.map(row =>
+            row.map(cell => (cell ? { ...cell, flash: false } : null))
           );
-          dispatch(setBoard(updated));
-          console.log('✅ Board mis à jour !', updated);
+          dispatch(setBoard(cleared));
+        }, 500);
 
-          if (isGameOver(aiUpdated)) {
-            dispatch(endGame());
-            resolveEndGame(aiUpdated);
-            return;
-          }
-
-          dispatch(switchTurn());
+        if (isGameOver(aiUpdated)) {
+          dispatch(endGame());
+          resolveEndGame(aiUpdated);
+          return;
         }
+
+        dispatch(switchTurn());
       }
     }, 500);
   };
 
   const resolveEndGame = (finalBoard) => {
-    const playerFinal = finalBoard.flat().filter(c => c?.owner === 'player').length;
-    const enemyFinal = finalBoard.flat().filter(c => c?.owner === 'enemy').length;
-
-    setWinner(playerFinal > enemyFinal ? 'player' : playerFinal < enemyFinal ? 'enemy' : 'draw');
+    const playerCount = finalBoard.flat().filter(c => c?.owner === 'player').length;
+    const enemyCount = finalBoard.flat().filter(c => c?.owner === 'enemy').length;
+    setWinner(playerCount > enemyCount ? 'player' : playerCount < enemyCount ? 'enemy' : 'draw');
     setShowEndModal(true);
   };
 
@@ -166,8 +203,6 @@ function Game() {
 
   const restart = () => navigate('/game');
 
-  console.log('🎯 BOARD RENDER:', JSON.stringify(board, null, 2));
-  console.log('🎯 BOARD REÇU dans <Board />:', board);
   return (
     <div className="game-container">
       <button className="back-button" onClick={() => navigate('/')}>← Retour</button>
@@ -197,11 +232,7 @@ function Game() {
           ))}
         </div>
 
-        <Board
-          board={board}
-          onCellClick={handleSlotClick}
-          elementTiles={elementTiles}
-        />
+        <Board board={board} onCellClick={handleSlotClick} elementTiles={elementTiles} />
 
         <div className="enemy-deck">
           {enemyDeck.map((card, index) => (

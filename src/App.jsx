@@ -5,11 +5,13 @@ import DeckBuilder from './components/DeckBuilder';
 import Pokedex from './components/Pokedex';
 import Rules from './components/Rules';
 import Quit from './components/Quit';
+
 import { useDispatch, useSelector } from 'react-redux';
+import { useEffect } from 'react';
+
 import { loadAllPokemon } from './utils/loadAllPokemon';
 import { capturePokemon, setAllPokemon } from './redux/slices/pokedexSlice';
 import { generateDefaultDeck } from './utils/generate';
-import { useEffect } from 'react';
 
 function App() {
   const dispatch = useDispatch();
@@ -17,19 +19,19 @@ function App() {
 
   useEffect(() => {
     const init = async () => {
-      // Charger le Pokédex complet (sans tout capturer)
+      // 1. Charger tous les Pokémon (sans les capturer)
       const all = await loadAllPokemon();
-      dispatch(setAllPokemon(all)); // ← pas de capture ici
+      dispatch(setAllPokemon(all));
 
-      // Puis seulement capturer le deck de base
-      if (captured.length === 0) {
+      // 2. Capturer les Pokémon du deck de base si aucune carte n'est capturée
+      if (!captured || captured.length === 0) {
         const base = await generateDefaultDeck();
         base.forEach(card => dispatch(capturePokemon(card)));
       }
     };
 
     init();
-  }, []);
+  }, [dispatch]); // ← ne pas inclure `captured` ici pour éviter une boucle infinie
 
   return (
     <Router>

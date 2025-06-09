@@ -24,9 +24,9 @@ const ruleData = {
     icon: '🔗',
     description: "Capture si deux valeurs adjacentes sont égales.",
   },
-  aléatoire: {
+  open: {
     label: 'Open',
-    icon: '👁️​',
+    icon: '👁️',
     description: "Deck visible par tous.",
   },
   ordre: {
@@ -35,16 +35,15 @@ const ruleData = {
     description: "Les cartes doivent être jouées dans l'ordre.",
   },
   élémentaire: {
-    label: 'Elémentaire',
+    label: 'Élémentaire',
     icon: '📈',
-    description: "Bonus de +1 aux cartes du même type déjà posées et malus de -1 aux cartes dont c'est leur faiblesse.",
+    description: "Bonus de +1 aux cartes du même type posées sur leur case élément. Malus -1 si c'est leur faiblesse.",
   },
   chaos: {
     label: 'Chaos',
     icon: '💥',
-    description: "En cas de défaite le joueur perds une de ces cartes.",
+    description: "En cas de défaite, le joueur perd une carte au hasard.",
   },
-  
 };
 
 export default function Rules() {
@@ -59,7 +58,9 @@ export default function Rules() {
       <div className="rules-grid">
         {rules.map((rule) => {
           const { name, active, unlocked } = rule;
-          const data = ruleData[name] || {};
+          const key = name.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+          const data = ruleData[key] || {};
+
           return (
             <div
               key={name}

@@ -2,9 +2,9 @@
 
 .game-container {
   padding: 20px;
-  font-family: 'VT323', monospace;
+  font-family: var(--gba-font);
   background-color: var(--gba-bg);
-  color: black;
+  color: var(--gba-text);
   min-height: 100vh;
 }
 
@@ -12,12 +12,18 @@
   position: absolute;
   top: 20px;
   left: 20px;
-  background: #f3c623;
-  border: 2px solid black;
-  padding: 6px 12px;
+  background-color: var(--gba-button-bg);
+  color: var(--gba-button-text);
+  border: 2px solid var(--gba-border);
   border-radius: 6px;
-  font-size: 18px;
+  padding: 6px 12px;
+  font-size: 16px;
   cursor: pointer;
+  box-shadow: var(--gba-shadow);
+}
+
+.back-button:hover {
+  background-color: var(--gba-button-hover);
 }
 
 .game-header {
@@ -28,12 +34,13 @@
 .game-title {
   font-size: 32px;
   margin-bottom: 10px;
+  text-transform: uppercase;
 }
 
 .game-turn,
 .game-score,
 .game-rules {
-  font-size: 20px;
+  font-size: 18px;
   margin: 4px 0;
 }
 
@@ -61,8 +68,12 @@
 
 .card-name {
   margin-bottom: 4px;
-  font-size: 16px;
+  font-size: 14px;
   font-weight: bold;
+  background: #fff;
+  border: 1px solid #aaa;
+  padding: 2px 6px;
+  border-radius: 4px;
 }
 
 .board {
@@ -70,11 +81,11 @@
   grid-template-columns: repeat(3, 120px);
   grid-template-rows: repeat(3, 150px);
   gap: 8px;
-  background-color: #2a2a2a;
+  background-color: var(--gba-board-bg);
   padding: 8px;
-  border: 4px solid black;
+  border: 4px solid var(--gba-border);
   border-radius: 10px;
-  box-shadow: 0 0 0 4px #444;
+  box-shadow: inset 0 0 8px #888;
 }
 
 .board-slot {
@@ -87,19 +98,30 @@
   justify-content: center;
 }
 
+/* Couleur de fond des cartes posées selon le camp */
+.owned-player {
+  border: 3px solid #3498db;
+}
+
+.owned-enemy {
+  border: 3px solid #e74c3c;
+}
+
+/* Modal de fin de partie */
 .end-modal {
   position: fixed;
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  background: white;
-  border: 3px solid black;
+  background: var(--gba-modal-bg);
+  border: 3px solid var(--gba-border);
   padding: 30px;
   text-align: center;
   z-index: 10;
   width: 90%;
   max-width: 400px;
   border-radius: 10px;
+  box-shadow: var(--gba-shadow);
 }
 
 .end-modal h2 {
@@ -111,10 +133,16 @@
   margin: 10px;
   padding: 10px 20px;
   font-size: 16px;
-  border: 2px solid black;
-  background: #aad;
+  border: 2px solid var(--gba-border);
+  background: var(--gba-button-bg);
+  color: var(--gba-button-text);
   cursor: pointer;
   border-radius: 6px;
+  box-shadow: var(--gba-shadow);
+}
+
+.end-modal button:hover {
+  background-color: var(--gba-button-hover);
 }
 
 .capture-choices {

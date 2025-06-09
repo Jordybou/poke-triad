@@ -18,12 +18,12 @@
 }
 
 .deck-manager-header h1 {
-  font-size: 16px;
+  font-size: 20px;
   text-transform: uppercase;
   margin: 0 auto;
 }
 
-.return-button {
+.back-button {
   position: absolute;
   left: 0;
   background-color: #fff;
@@ -36,7 +36,7 @@
   cursor: pointer;
 }
 
-.return-button:hover {
+.back-button:hover {
   background-color: #eee;
 }
 
@@ -65,7 +65,7 @@
 }
 
 .deck-box h3 {
-  font-size: 14px;
+  font-size: 16px;
   margin-bottom: 8px;
   text-align: center;
 }
@@ -86,7 +86,7 @@
 
 .deck-actions button {
   font-family: var(--gba-font);
-  font-size: 10px;
+  font-size: 12px;
   padding: 6px 10px;
   border: 2px solid var(--gba-border);
   background-color: var(--gba-button-bg);

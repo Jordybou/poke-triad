@@ -1,6 +1,6 @@
 @import './variables.css';
 
-.deck-builder-container {
+.deck-builder {
   background-color: var(--gba-bg);
   color: var(--gba-text);
   font-family: var(--gba-font);
@@ -9,18 +9,18 @@
   text-align: center;
 }
 
-.deck-builder-container h1 {
-  font-size: 16px;
+.deck-builder h1 {
+  font-size: 20px;
   margin-bottom: 10px;
   text-transform: uppercase;
 }
 
-.deck-builder-container p {
-  font-size: 12px;
-  margin-bottom: 10px;
+.deck-builder p {
+  font-size: 14px;
+  margin: 10px 0;
 }
 
-.deck-builder-grid {
+.card-grid {
   display: flex;
   flex-wrap: wrap;
   justify-content: center;
@@ -28,7 +28,7 @@
   margin-top: 20px;
 }
 
-.deck-builder-grid .card {
+.card-grid .card {
   width: 100px;
   height: 120px;
   border: 2px solid var(--gba-border);
@@ -45,20 +45,20 @@
   transition: transform 0.2s ease;
 }
 
-.deck-builder-grid .card img {
+.card-grid .card img {
   width: 60px;
   height: 60px;
   object-fit: contain;
   image-rendering: pixelated;
 }
 
-.deck-builder-grid .card.selected {
+.card-grid .card.selected {
   border: 2px solid #3b4cca;
   background-color: #ffeb3b;
   transform: scale(1.05);
 }
 
-.validate-button {
+.validate-btn {
   margin-top: 1.5rem;
   padding: 8px 16px;
   font-size: 12px;
@@ -71,7 +71,7 @@
   box-shadow: var(--gba-shadow);
 }
 
-.validate-button:hover {
+.validate-btn:hover {
   background-color: var(--gba-button-hover);
 }
 

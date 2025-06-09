@@ -15,17 +15,15 @@ const boardSlice = createSlice({
     placeCard: (state, action) => {
       const { row, col, card } = action.payload;
 
-      // 🛡 Vérifie que la ligne existe
-      if (!state.grid[row]) return;
+      if (!state.grid[row] || typeof state.grid[row][col] === 'undefined') {
+        console.warn("⛔️ Emplacement invalide :", row, col);
+        return;
+      }
 
-      // 🛡 Vérifie que la colonne existe dans la ligne
-      if (typeof state.grid[row][col] === 'undefined') return;
-
-      // 🧩 Si la case est vide, place la carte
       if (state.grid[row][col] === null) {
         state.grid[row][col] = card;
-        
-      }console.log("PLACEMENT EFFECTIF :", row, col, card);
+        console.log("✅ PLACEMENT EFFECTIF :", row, col, card);
+      }
     },
     setBoard: (state, action) => {
       state.grid = action.payload;

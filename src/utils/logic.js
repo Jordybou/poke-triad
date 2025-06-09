@@ -28,7 +28,6 @@ const weaknesses = {
   fairy: ['steel', 'poison'],
 };
 
-// --- Fonction : Capture Classique ---
 function applyClassicCapture(board, row, col, card, newBoard) {
   directions.forEach(({ dr, dc, side, opposite }) => {
     const nr = row + dr, nc = col + dc;
@@ -36,14 +35,13 @@ function applyClassicCapture(board, row, col, card, newBoard) {
       const adjCard = newBoard[nr][nc];
       if (adjCard && adjCard.owner !== card.owner) {
         if (card.values[side] > adjCard.values[opposite]) {
-          newBoard[nr][nc] = { ...adjCard, owner: card.owner };
+          newBoard[nr][nc] = { ...adjCard, owner: card.owner, flash: true };
         }
       }
     }
   });
 }
 
-// --- Fonction : Règle Identique ---
 function applyIdentique(board, row, col, card, newBoard, isCombo, comboQueue) {
   const matched = [];
   directions.forEach(({ dr, dc, side, opposite }) => {
@@ -57,13 +55,12 @@ function applyIdentique(board, row, col, card, newBoard, isCombo, comboQueue) {
   });
   if (matched.length >= 2) {
     matched.forEach(({ row, col }) => {
-      newBoard[row][col] = { ...newBoard[row][col], owner: card.owner };
+      newBoard[row][col] = { ...newBoard[row][col], owner: card.owner, flash: true };
       if (isCombo) comboQueue.push({ row, col, card: newBoard[row][col] });
     });
   }
 }
 
-// --- Fonction : Règle Plus ---
 function applyPlus(board, row, col, card, newBoard, isCombo, comboQueue) {
   const sums = {};
   directions.forEach(({ dr, dc, side, opposite }) => {
@@ -81,14 +78,13 @@ function applyPlus(board, row, col, card, newBoard, isCombo, comboQueue) {
   Object.values(sums).forEach(matches => {
     if (matches.length >= 2) {
       matches.forEach(({ row, col }) => {
-        newBoard[row][col] = { ...newBoard[row][col], owner: card.owner };
+        newBoard[row][col] = { ...newBoard[row][col], owner: card.owner, flash: true };
         if (isCombo) comboQueue.push({ row, col, card: newBoard[row][col] });
       });
     }
   });
 }
 
-// --- Fonction : Règle Mur ---
 function applyWall(board, row, col, card, newBoard) {
   const edges = [
     { check: col === 0, rowOffset: 0, colOffset: 2, side: 'left', opposite: 'right' },
@@ -103,14 +99,13 @@ function applyWall(board, row, col, card, newBoard) {
       if (r2 >= 0 && r2 < 3 && c2 >= 0 && c2 < 3) {
         const target = newBoard[r2][c2];
         if (target && target.owner !== card.owner && card.values[side] > target.values[opposite]) {
-          newBoard[r2][c2] = { ...target, owner: card.owner };
+          newBoard[r2][c2] = { ...target, owner: card.owner, flash: true };
         }
       }
     }
   });
 }
 
-// --- Fonction : Règle Combo ---
 function applyCombo(board, comboQueue, newBoard) {
   while (comboQueue.length) {
     const { row, col, card } = comboQueue.shift();
@@ -119,14 +114,13 @@ function applyCombo(board, comboQueue, newBoard) {
       if (nr >= 0 && nr < 3 && nc >= 0 && nc < 3) {
         const adjCard = newBoard[nr][nc];
         if (adjCard && adjCard.owner !== card.owner && card.values[side] > adjCard.values[opposite]) {
-          newBoard[nr][nc] = { ...adjCard, owner: card.owner };
+          newBoard[nr][nc] = { ...adjCard, owner: card.owner, flash: true };
         }
       }
     });
   }
 }
 
-// --- Fonction : Élémentaire (bonus/malus en fonction de la case) ---
 function applyElemental(card, elementMap) {
   const key = `${card.row}-${card.col}`;
   const tileType = elementMap[key];
@@ -143,24 +137,23 @@ function applyElemental(card, elementMap) {
   return adjusted;
 }
 
-// --- Fonction principale à appeler depuis Game.jsx ---
 export function applyCaptureRules(board, row, col, placedCard, activeRules, positionElements = {}) {
   const rulesSet = new Set(activeRules.map(r => r.trim().toLowerCase()));
-  const isIdentique = rulesSet.has('Identique').toLowerCase;
-  const isMur = rulesSet.has('Mur').toLowerCase;
-  const isPlus = rulesSet.has('Plus').toLowerCase;
-  const isCombo = rulesSet.has('Combo').toLowerCase;
-  const isElemental = rulesSet.has('Elémentaire').toLowerCase;
+  const isIdentique = rulesSet.has('identique');
+  const isMur = rulesSet.has('mur');
+  const isPlus = rulesSet.has('plus');
+  const isCombo = rulesSet.has('combo');
+  const isElemental = rulesSet.has('élémentaire');
 
   const newBoard = board.map(row => [...row]);
   const comboQueue = [];
 
   let card = { ...placedCard, row, col };
-
   if (isElemental) {
     card = applyElemental(card, positionElements);
   }
 
+  newBoard[row][col] = card; // Place la carte jouée
   applyClassicCapture(board, row, col, card, newBoard);
   if (isIdentique) applyIdentique(board, row, col, card, newBoard, isCombo, comboQueue);
   if (isPlus) applyPlus(board, row, col, card, newBoard, isCombo, comboQueue);
@@ -170,7 +163,6 @@ export function applyCaptureRules(board, row, col, placedCard, activeRules, posi
   return newBoard;
 }
 
-// --- Vérifie si la partie est terminée ---
 export function isGameOver(board) {
   return board.flat().filter(Boolean).length === 9;
 }

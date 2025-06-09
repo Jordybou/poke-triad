@@ -11,4 +11,10 @@
   --gba-font: 'Press Start 2P', cursive;
 
   --gba-shadow: 2px 2px 0px #444;
+
+  --gba-error: #e74c3c;
+  --gba-success: #2ecc71;
+  --gba-info: #3498db;
+  --gba-card-bg: #fefefe;
+  --gba-card-border: #000;
 }

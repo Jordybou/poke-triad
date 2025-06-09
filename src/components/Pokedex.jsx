@@ -1,8 +1,9 @@
 import { useSelector } from 'react-redux';
 import { useEffect, useState } from 'react';
 import { fetchFrenchName } from '../utils/translate';
-import '../styles/Pokedex.css';
 import { useNavigate } from 'react-router-dom';
+import '../styles/Pokedex.css';
+import { BADGES } from '../utils/badges';
 
 const Pokedex = () => {
   const navigate = useNavigate();
@@ -14,34 +15,19 @@ const Pokedex = () => {
 
   useEffect(() => {
     const fetchNames = async () => {
-      const results = await Promise.all(
-        captured.map(pokemon =>
-          fetchFrenchName(pokemon.name).then(name => ({ id: pokemon.id, name }))
-        )
-      );
-      const resultMap = {};
-      results.forEach(({ id, name }) => resultMap[id] = name);
-      setTranslatedNames(resultMap);
+      const newTranslations = {};
+      for (const pokemon of captured) {
+        if (!translatedNames[pokemon.id]) {
+          const frName = await fetchFrenchName(pokemon.name);
+          newTranslations[pokemon.id] = frName;
+        }
+      }
+      setTranslatedNames((prev) => ({ ...prev, ...newTranslations }));
     };
     fetchNames();
   }, [captured]);
 
   const isCaptured = (id) => captured.some((p) => p.id === id);
-
-  const renderBadges = () => {
-    const badges = 8;
-    return [...Array(badges)].map((_, i) => {
-      const unlocked = i < badgeCount;
-      return (
-        <img
-          key={i}
-          src={`/badges/badge-${i + 1}.png`}
-          alt={`Badge ${i + 1}`}
-          className={`badge ${unlocked ? 'unlocked' : 'locked'}`}
-        />
-      );
-    });
-  };
 
   return (
     <div className="pokedex">
@@ -66,6 +52,7 @@ const Pokedex = () => {
                   <img
                     src={pokemon.image || '/images/missing.png'}
                     alt={translatedName}
+                    onError={(e) => { e.target.src = '/images/missing.png'; }}
                   />
                   <p className="poke-name">{translatedName}</p>
                 </>
@@ -78,7 +65,14 @@ const Pokedex = () => {
       </div>
 
       <div className="badge-container">
-        {renderBadges()}
+        {BADGES.map((badge, i) => (
+          <img
+            key={i}
+            src={badge.image}
+            alt={badge.name}
+            className={`badge-item ${i < badgeCount ? 'badge-unlocked' : 'badge-locked'}`}
+          />
+        ))}
       </div>
     </div>
   );

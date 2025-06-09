@@ -3,33 +3,17 @@
 .home-container {
   text-align: center;
   margin-top: 4rem;
-  font-family: 'Press Start 2P', cursive;
-  color: #333;
+  font-family: var(--gba-font);
+  color: var(--gba-text);
+  background-color: var(--gba-bg);
+  min-height: 100vh;
 }
 
 .home-title {
   font-size: 2rem;
   margin-bottom: 2rem;
-  color: #2b2b2b;
-  text-shadow: 2px 2px #ccc;
-}
-
-.home-menu button {
-  display: block;
-  margin: 1rem auto;
-  padding: 1rem 2rem;
-  font-size: 1rem;
-  border: 2px solid #444;
-  background-color: #f8f8f8;
-  cursor: pointer;
-  border-radius: 8px;
-  width: 220px;
-  transition: transform 0.2s ease;
-}
-
-.home-menu button:hover {
-  transform: scale(1.05);
-  background-color: #e0e0e0;
+  color: var(--gba-accent);
+  text-shadow: 1px 1px 0 #222;
 }
 
 .home-menu {
@@ -37,4 +21,25 @@
   flex-direction: column;
   gap: 20px;
   align-items: center;
+}
+
+.home-menu button {
+  display: block;
+  margin: 0 auto;
+  padding: 1rem 2rem;
+  font-size: 1rem;
+  border: 2px solid var(--gba-border);
+  background-color: var(--gba-button-bg);
+  color: var(--gba-button-text);
+  cursor: pointer;
+  border-radius: 8px;
+  width: 220px;
+  box-shadow: var(--gba-shadow);
+  font-family: var(--gba-font);
+  transition: transform 0.2s ease, background-color 0.2s ease;
+}
+
+.home-menu button:hover {
+  transform: scale(1.05);
+  background-color: var(--gba-button-hover);
 }

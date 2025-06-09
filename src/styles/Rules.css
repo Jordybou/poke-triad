@@ -75,3 +75,12 @@
   cursor: pointer;
   z-index: 1000;
 }
+
+.rule-toggle input[type="checkbox"] {
+  margin-right: 6px;
+  transform: scale(1.2);
+}
+
+.rule-box.unlocked input:checked ~ .rule-name {
+  text-decoration: underline;
+}

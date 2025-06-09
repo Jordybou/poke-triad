@@ -1,3 +1,5 @@
+@import './variables.css';
+
 .board-container {
   display: flex;
   flex-direction: column;
@@ -25,6 +27,19 @@
   display: flex;
   justify-content: center;
   align-items: center;
+  position: relative; /* pour bien positionner .element-icon ou .fallback-emoji */
+  cursor: pointer; /* UX améliorée pour le clic */
+  transition: transform 0.2s ease;
+  transition: border 0.2s ease, box-shadow 0.2s ease;
+}
+
+.board-cell:hover {
+  transform: scale(1.03);
+}
+
+.fallback-emoji {
+  top: 4px;
+  right: 4px;
 }
 
 .element-icon {
@@ -41,4 +56,12 @@
   font-weight: bold;
   position: absolute;
   pointer-events: none;
+}
+
+.board-cell.owned-player {
+  border-color: #3498db; /* Bleu clair */
+}
+
+.board-cell.owned-enemy {
+  border-color: #e74c3c; /* Rouge clair */
 }

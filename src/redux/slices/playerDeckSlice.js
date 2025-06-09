@@ -18,14 +18,9 @@ const playerDeckSlice = createSlice({
     // Remplace toutes les cartes d’un deck par défaut
     setPlayerDeck(state, action) {
       const active = state.decks.find(d => d.id === state.activeDeckId);
-      if (active) {
+      if (active && Array.isArray(action.payload) && action.payload.length === 5) {
         active.cards = action.payload;
       }
-    },
-
-    // Réinitialise le deck actif avec 5 cartes par défaut
-    asyncResetPlayerDeck(state) {
-      // À appeler avec middleware async ou thunk pour await
     },
 
     // Ajoute un nouveau deck
@@ -64,6 +59,13 @@ const playerDeckSlice = createSlice({
     setActiveDeck(state, action) {
       state.activeDeckId = action.payload;
     },
+
+    removeCardFromPlayerDeck(state, action) {
+      const activeDeck = state.decks.find(d => d.id === state.activeDeckId);
+      if (activeDeck) {
+        activeDeck.cards = activeDeck.cards.filter(card => card.id !== action.payload);
+      }
+    }
   },
 });
 
@@ -74,6 +76,7 @@ export const {
   deleteDeck,
   duplicateDeck,
   setActiveDeck,
+  removeCardFromPlayerDeck,
 } = playerDeckSlice.actions;
 
 export const selectDecks = (state) => state.playerDeck.decks;
