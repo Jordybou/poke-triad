@@ -19,31 +19,32 @@ const ruleData = {
     icon: '🔁',
     description: "Une capture déclenche une réaction en chaîne.",
   },
-  même: {
-    label: 'Même',
+  identique: {
+    label: 'Identique',
     icon: '🔗',
     description: "Capture si deux valeurs adjacentes sont égales.",
   },
   aléatoire: {
-    label: 'Aléatoire',
-    icon: '🎲',
-    description: "Deck composé de cartes aléatoires.",
+    label: 'Open',
+    icon: '👁️​',
+    description: "Deck visible par tous.",
   },
   ordre: {
     label: 'Ordre',
     icon: '📜',
     description: "Les cartes doivent être jouées dans l'ordre.",
   },
+  élémentaire: {
+    label: 'Elémentaire',
+    icon: '📈',
+    description: "Bonus de +1 aux cartes du même type déjà posées et malus de -1 aux cartes dont c'est leur faiblesse.",
+  },
   chaos: {
     label: 'Chaos',
     icon: '💥',
-    description: "Une carte aléatoire est jouée à chaque tour.",
+    description: "En cas de défaite le joueur perds une de ces cartes.",
   },
-  ascension: {
-    label: 'Ascension',
-    icon: '📈',
-    description: "Bonus de +1 aux cartes du même type déjà posées.",
-  },
+  
 };
 
 export default function Rules() {

@@ -1,8 +1,9 @@
 import { createSlice } from '@reduxjs/toolkit';
-import { BADGES } from '../data/badges';
+import { BADGES } from '../../utils/badges';
 
 const initialState = {
   captured: [],
+  all: [], // ← Ajouté : contient les 151 Pokémon chargés
   badgeCount: 0,
 };
 
@@ -12,14 +13,16 @@ const pokedexSlice = createSlice({
   reducers: {
     capturePokemon(state, action) {
       const newCard = action.payload;
-      if (!state.captured.some((card) => card.name === newCard.name)) {
+      if (!state.captured.some((card) => card.id === newCard.id)) {
         state.captured.push(newCard);
 
-        // Recalcul des badges débloqués
         const capturedCount = state.captured.length;
         const newBadgeCount = BADGES.filter(b => capturedCount >= b.threshold).length;
         state.badgeCount = newBadgeCount;
       }
+    },
+    setAllPokemon(state, action) {
+      state.all = action.payload; // ← Stockage du Pokédex complet
     },
     resetPokedex() {
       return initialState;
@@ -27,8 +30,14 @@ const pokedexSlice = createSlice({
   },
 });
 
-export const { capturePokemon, resetPokedex } = pokedexSlice.actions;
+export const {
+  capturePokemon,
+  setAllPokemon,
+  resetPokedex,
+} = pokedexSlice.actions;
+
 export const selectCaptured = (state) => state.pokedex.captured;
+export const selectAllPokemon = (state) => state.pokedex.all;
 export const selectBadgeCount = (state) => state.pokedex.badgeCount;
 
 export default pokedexSlice.reducer;

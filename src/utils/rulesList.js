@@ -1,10 +1,10 @@
 export const ALL_RULES = [
   'Ordre',
-  'Élémental',
+  'Élémentaire',
   'Open',
   'Combo',
   'Plus',
-  'Same',
+  'Identique',
   'Mur',
   'Chaos'
 ];

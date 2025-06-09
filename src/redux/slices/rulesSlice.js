@@ -1,6 +1,6 @@
 import { createSlice } from '@reduxjs/toolkit';
 
-const allRules = ['Ordre', 'Elémental', 'Open', 'Combo', 'Plus', 'Same', 'Mur', 'Chaos'];
+const allRules = ['Ordre', 'Elémentaire', 'Open', 'Combo', 'Plus', 'Identique', 'Mur', 'Chaos'];
 
 const initialState = {
   unlockedRules: [], // par exemple ['Ordre', 'Mur'] si 2 badges débloqués

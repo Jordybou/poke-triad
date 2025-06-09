@@ -2,10 +2,9 @@ import Card from './Card';
 import '../styles/Board.css';
 import { getTypeEmoji } from '../utils/translate';
 
-// Renvoie le chemin vers l'icône SVG d’un type donné
 const getTypeIcon = (type) => {
   if (!type) return null;
-  const filename = type.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+  const filename = type.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '');
   return `/icons/types/${filename}.svg`;
 };
 
@@ -17,6 +16,8 @@ export default function Board({ board, onCellClick, elementTiles = [] }) {
     const tile = elementTiles.find(tile => tile.row === row && tile.col === col);
     return tile?.type || null;
   };
+
+  console.log('🎯 BOARD RENDER', board);
 
   return (
     <div className="board-container">
@@ -32,36 +33,58 @@ export default function Board({ board, onCellClick, elementTiles = [] }) {
                 key={colIndex}
                 onClick={() => onCellClick(rowIndex, colIndex)}
               >
-                {cell ? (
-                  <Card
-                    card={cell}
-                    owner={cell.owner}
-                    inDeck={false}
-                    faceDown={false}
-                    zoomable={false}
-                    bonus={cell.bonus}
-                    malus={cell.malus}
-                    element={type}
-                  />
-                ) : isElement ? (
-                  <img
-                    src={getTypeIcon(type)}
-                    alt={type}
-                    className="element-icon"
-                    onError={(e) => {
-                      const emoji = getTypeEmoji(type);
-                      e.target.replaceWith(Object.assign(document.createElement('span'), {
-                        className: 'fallback-emoji',
-                        innerText: emoji,
-                      }));
-                    }}
-                  />
-                ) : null}
+                {
+                  cell ? (
+                    <div className="debug-cell" > {cell.name || 'OK'}</div>
+                  ) : isElement ? (
+                    <img
+                      src={getTypeIcon(type)}
+                      alt={type}
+                      className="element-icon"
+                      onError={(e) => {
+                        e.target.onerror = null;
+                        e.target.style.display = 'none';
+                        const fallback = document.createElement('span');
+                        fallback.className = 'element-emoji-fallback';
+                        fallback.innerText = getTypeEmoji(type);
+                        e.target.parentNode.appendChild(fallback);
+                      }}
+                    />
+                  ) : (
+                    <div className="debug-cell">VIDE</div>
+                  )}
+                {/*{cell ? (
+            <Card
+              card={cell}
+              owner={cell.owner}
+              inDeck={false}
+              faceDown={false}
+              zoomable={false}
+              bonus={cell.bonus}
+              malus={cell.malus}
+              element={type}
+            />
+          ) : isElement ? (
+            <img
+              src={getTypeIcon(type)}
+              alt={type}
+              className="element-icon"
+              onError={(e) => {
+                e.target.onerror = null;
+                e.target.style.display = 'none';
+                const fallback = document.createElement('span');
+                fallback.className = 'element-emoji-fallback';
+                fallback.innerText = getTypeEmoji(type);
+                e.target.parentNode.appendChild(fallback);
+              }}
+            />
+          ) : null} */}
               </div>
             );
           })}
         </div>
-      ))}
-    </div>
+      ))
+      }
+    </div >
   );
 }

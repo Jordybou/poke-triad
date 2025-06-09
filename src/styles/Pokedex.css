@@ -61,7 +61,7 @@
 .card.locked .lock {
   width: 32px;
   height: 32px;
-  background-image: url('/images/lock.png');
+  background-image: url('/public/images/card-back.png');
   background-size: contain;
   background-repeat: no-repeat;
   filter: grayscale(100%);

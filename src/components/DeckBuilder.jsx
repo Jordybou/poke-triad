@@ -25,7 +25,7 @@ const DeckBuilder = () => {
       setTranslatedNames((prev) => ({ ...prev, ...newTranslations }));
     };
     loadTranslations();
-  }, [captured]);
+  }, [captured, translatedNames]);
 
   const toggleSelect = (card) => {
     const isSelected = selected.some((c) => c.id === card.id);

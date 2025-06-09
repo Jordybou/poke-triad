@@ -9,7 +9,10 @@ const gameSlice = createSlice({
   name: 'game',
   initialState,
   reducers: {
-    resetGame: () => initialState,
+    resetGame(state) {
+      state.status = 'playing';
+      state.turn = 'player';
+    },
     endGame(state) {
       state.status = 'ended';
     },

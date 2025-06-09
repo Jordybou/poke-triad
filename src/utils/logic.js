@@ -146,11 +146,11 @@ function applyElemental(card, elementMap) {
 // --- Fonction principale à appeler depuis Game.jsx ---
 export function applyCaptureRules(board, row, col, placedCard, activeRules, positionElements = {}) {
   const rulesSet = new Set(activeRules.map(r => r.trim().toLowerCase()));
-  const isIdentique = rulesSet.has('identique');
-  const isMur = rulesSet.has('mur');
-  const isPlus = rulesSet.has('plus');
-  const isCombo = rulesSet.has('combo');
-  const isElemental = rulesSet.has('élémentaire');
+  const isIdentique = rulesSet.has('Identique').toLowerCase;
+  const isMur = rulesSet.has('Mur').toLowerCase;
+  const isPlus = rulesSet.has('Plus').toLowerCase;
+  const isCombo = rulesSet.has('Combo').toLowerCase;
+  const isElemental = rulesSet.has('Elémentaire').toLowerCase;
 
   const newBoard = board.map(row => [...row]);
   const comboQueue = [];

@@ -1,6 +1,6 @@
 import axios from 'axios';
 import { generateCardValuesFromStats } from './statUtils';
-import { translateName } from './translate';
+import { fetchFrenchName } from './translate';
 
 export async function generateDeck(count = 5) {
   const deck = [];
@@ -35,14 +35,13 @@ async function fetchCardData(id) {
     return {
       id,
       name: data.name,
-      frenchName: await translateName(id),
+      frenchName: await fetchFrenchName(data.name),
       image: data.sprites.other['official-artwork'].front_default || '/images/missing.png',
-      type: data.types[0].type.name,
+      type: data.types[0].type.name ||'normal',
       top: values.top,
       right: values.right,
       bottom: values.bottom,
-      left: values.left,
-      type: data.types?.[0]?.type?.name || 'normal',
+      left: values.left, 
     };
   } catch (error) {
     console.error(`Erreur récupération Pokémon ${id}`, error);

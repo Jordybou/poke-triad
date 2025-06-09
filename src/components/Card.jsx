@@ -35,9 +35,9 @@ function Card({
 
   return (
     <div className={cardClasses} onClick={onClick}>
-      {inDeck && !faceDown && <div className="card-name">{card.frenchName}</div>}
+      {(inDeck && !faceDown) && <div className="card-name">{card.frenchName || card.name}</div>}
 
-      {faceDown || card.hidden ? (
+      {(faceDown || card.hidden) ? (
         <div className="card-back-wrapper">
           <img src="/images/card-back.png" alt="Dos de carte" className="card-back-image" />
         </div>
@@ -48,7 +48,7 @@ function Card({
           {renderValue(card.right, 'right')}
           {renderValue(card.bottom, 'bottom')}
 
-          <img src={card.image} alt={card.frenchName} className="card-image" />
+          <img src={card.image} alt={card.frenchName || card.name} className="card-image" />
 
           {/* Type du Pokémon (avec fallback emoji si l’image échoue) */}
           {card.type && (

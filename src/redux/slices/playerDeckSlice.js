@@ -1,5 +1,4 @@
 import { createSlice, nanoid } from '@reduxjs/toolkit';
-import { generateDefaultDeck } from '../../utils/generate';
 
 const initialDeck = {
   id: nanoid(),

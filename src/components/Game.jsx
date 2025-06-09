@@ -1,10 +1,10 @@
 import { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
-import { selectPlayerDeck } from '../redux/slices/playerDeckSlice';
+import { selectPlayerDeck, setPlayerDeck } from '../redux/slices/playerDeckSlice';
 import { generateEnemyDeck, selectEnemyDeck } from '../redux/slices/enemyDeckSlice';
-import { placeCard, selectBoard, resetBoard, updateBoard } from '../redux/slices/boardSlice';
-import { endGame, resetGame, selectGameStatus, selectTurn, switchTurn } from '../redux/slices/gameSlice';
+import { placeCard, selectBoard, resetBoard, setBoard } from '../redux/slices/boardSlice';
+import { endGame, resetGame, selectTurn, switchTurn } from '../redux/slices/gameSlice';
 import { capturePokemon } from '../redux/slices/pokedexSlice';
 import { selectActiveRules } from '../redux/slices/rulesSlice';
 import Card from './Card';
@@ -19,9 +19,10 @@ function Game() {
   const playerDeck = useSelector(selectPlayerDeck);
   const enemyDeck = useSelector(selectEnemyDeck);
   const board = useSelector(selectBoard);
+  const flatBoard = board?.flat?.() || [];
   const turn = useSelector(selectTurn);
-  const gameStatus = useSelector(selectGameStatus);
   const activeRules = useSelector(selectActiveRules);
+  const captured = useSelector((state) => state.pokedex.captured);
 
   const [selectedCard, setSelectedCard] = useState(null);
   const [showEndModal, setShowEndModal] = useState(false);
@@ -30,53 +31,60 @@ function Game() {
   const [captureConfirmed, setCaptureConfirmed] = useState(false);
   const [elementTiles, setElementTiles] = useState([]);
 
-  const playerScore = board.filter(card => card?.owner === 'player').length;
-  const enemyScore = board.filter(card => card?.owner === 'enemy').length;
+  const playerScore = flatBoard.filter(card => card?.owner === 'player').length;
+  const enemyScore = flatBoard.filter(card => card?.owner === 'enemy').length;
 
   useEffect(() => {
     dispatch(resetBoard());
     dispatch(resetGame());
-    dispatch(generateEnemyDeck());
 
-    // Génération des cases élémentaires si la règle est active
-    if (activeRules.includes('Élémentaire')) {
-      const allTypes = [...playerDeck, ...enemyDeck]
-        .map(card => card.type)
-        .filter((v, i, a) => a.indexOf(v) === i); // unique
-
-      const count = Math.floor(Math.random() * 3) + 1; // 1 à 3 cases
-      const positions = new Set();
-      while (positions.size < count) {
-        const row = Math.floor(Math.random() * 3);
-        const col = Math.floor(Math.random() * 3);
-        positions.add(`${row}-${col}`);
-      }
-
-      const result = Array.from(positions).map(pos => {
-        const [row, col] = pos.split('-').map(Number);
-        const type = allTypes[Math.floor(Math.random() * allTypes.length)];
-        return { row, col, type };
-      });
-
-      setElementTiles(result);
-    } else {
-      setElementTiles([]);
+    if (playerDeck.length === 0) {
+      const fromCaptured = captured.slice(0, 5);
+      dispatch(setPlayerDeck(fromCaptured));
     }
-  }, [dispatch, activeRules, playerDeck, enemyDeck]);
+
+    dispatch(generateEnemyDeck());
+  }, [dispatch]);
+
+  useEffect(() => {
+    if (!activeRules.includes('Élémentaire') || playerDeck.length === 0 || enemyDeck.length === 0) {
+      setElementTiles([]);
+      return;
+    }
+
+    const allTypes = [...playerDeck, ...enemyDeck]
+      .map(card => card.type)
+      .filter((v, i, a) => a.indexOf(v) === i);
+
+    const count = Math.floor(Math.random() * 3) + 1;
+    const positions = new Set();
+    while (positions.size < count) {
+      const row = Math.floor(Math.random() * 3);
+      const col = Math.floor(Math.random() * 3);
+      positions.add(`${row}-${col}`);
+    }
+
+    const result = Array.from(positions).map(pos => {
+      const [row, col] = pos.split('-').map(Number);
+      const type = allTypes[Math.floor(Math.random() * allTypes.length)];
+      return { row, col, type };
+    });
+
+    setElementTiles(result);
+  }, [activeRules, playerDeck, enemyDeck]);
 
   const handleCardClick = (card, index) => {
-    if (turn !== 'player' || selectedCard || board.some(slot => slot?.id === card.id)) return;
+    if (turn !== 'player' || selectedCard || flatBoard.some(slot => slot?.id === card.id)) return;
     setSelectedCard({ ...card, index });
   };
 
-  const handleSlotClick = (index) => {
-    if (!selectedCard || board[index]) return;
+  const handleSlotClick = (row, col) => {
+    if (!selectedCard) return;
 
-    const row = Math.floor(index / 3);
-    const col = index % 3;
+    if (board[row][col]) return;
+
     const cardToPlace = { ...selectedCard, owner: 'player' };
-
-    dispatch(placeCard({ index, card: cardToPlace }));
+    dispatch(placeCard({ row, col, card: cardToPlace }));
 
     const updated = applyCaptureRules(
       board,
@@ -89,7 +97,8 @@ function Game() {
         return acc;
       }, {})
     );
-    dispatch(updateBoard(updated));
+    dispatch(setBoard(updated));
+    console.log('✅ Board mis à jour !', updated);
     setSelectedCard(null);
 
     if (isGameOver(updated)) {
@@ -100,22 +109,24 @@ function Game() {
 
     dispatch(switchTurn());
 
-    // Tour de l'ennemi
     setTimeout(() => {
-      const availableIndexes = updated.map((c, i) => c === null ? i : null).filter(i => i !== null);
-      if (availableIndexes.length > 0) {
-        const aiCard = enemyDeck.find(c => !updated.some(b => b?.id === c.id));
-        if (aiCard) {
-          const aiIndex = availableIndexes[Math.floor(Math.random() * availableIndexes.length)];
-          dispatch(placeCard({ index: aiIndex, card: { ...aiCard, owner: 'enemy' } }));
+      const availableCoords = [];
+      updated.forEach((rowArr, rowIdx) => {
+        rowArr.forEach((cell, colIdx) => {
+          if (!cell) availableCoords.push({ row: rowIdx, col: colIdx });
+        });
+      });
 
-          const row = Math.floor(aiIndex / 3);
-          const col = aiIndex % 3;
+      if (availableCoords.length > 0) {
+        const aiCard = enemyDeck.find(c => !updated.flat().some(b => b?.id === c.id));
+        if (aiCard) {
+          const { row: aiRow, col: aiCol } = availableCoords[Math.floor(Math.random() * availableCoords.length)];
+          dispatch(placeCard({ row: aiRow, col: aiCol, card: { ...aiCard, owner: 'enemy' } }));
 
           const aiUpdated = applyCaptureRules(
             updated,
-            row,
-            col,
+            aiRow,
+            aiCol,
             { ...aiCard, owner: 'enemy' },
             activeRules,
             elementTiles.reduce((acc, { row, col, type }) => {
@@ -123,7 +134,8 @@ function Game() {
               return acc;
             }, {})
           );
-          dispatch(updateBoard(aiUpdated));
+          dispatch(setBoard(updated));
+          console.log('✅ Board mis à jour !', updated);
 
           if (isGameOver(aiUpdated)) {
             dispatch(endGame());
@@ -138,8 +150,8 @@ function Game() {
   };
 
   const resolveEndGame = (finalBoard) => {
-    const playerFinal = finalBoard.filter(c => c?.owner === 'player').length;
-    const enemyFinal = finalBoard.filter(c => c?.owner === 'enemy').length;
+    const playerFinal = finalBoard.flat().filter(c => c?.owner === 'player').length;
+    const enemyFinal = finalBoard.flat().filter(c => c?.owner === 'enemy').length;
 
     setWinner(playerFinal > enemyFinal ? 'player' : playerFinal < enemyFinal ? 'enemy' : 'draw');
     setShowEndModal(true);
@@ -154,6 +166,8 @@ function Game() {
 
   const restart = () => navigate('/game');
 
+  console.log('🎯 BOARD RENDER:', JSON.stringify(board, null, 2));
+  console.log('🎯 BOARD REÇU dans <Board />:', board);
   return (
     <div className="game-container">
       <button className="back-button" onClick={() => navigate('/')}>← Retour</button>
@@ -163,8 +177,8 @@ function Game() {
         <p className="game-turn">Tour : {turn === 'player' ? 'Joueur' : 'Ennemi'}</p>
         <p className="game-score">Score – Joueur : {playerScore} | Ennemi : {enemyScore}</p>
         <p className="game-rules">
-          Règle{activeRules.length > 1 ? 's' : ''} en cours :{" "}
-          {activeRules.length > 0 ? activeRules.join(", ") : "aucune"}
+          Règle{activeRules.length > 1 ? 's' : ''} en cours :{' '}
+          {activeRules.length > 0 ? activeRules.join(', ') : 'aucune'}
         </p>
       </div>
 
@@ -183,8 +197,9 @@ function Game() {
           ))}
         </div>
 
-        <Board board={[board.slice(0, 3), board.slice(3, 6), board.slice(6, 9)]}
-          onCellClick={(r, c) => handleSlotClick(r * 3 + c)}
+        <Board
+          board={board}
+          onCellClick={handleSlotClick}
           elementTiles={elementTiles}
         />
 

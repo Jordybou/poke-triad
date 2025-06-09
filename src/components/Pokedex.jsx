@@ -65,7 +65,7 @@ const Pokedex = () => {
                   <p className="poke-id">#{String(pokemon.id).padStart(3, '0')}</p>
                   <img
                     src={pokemon.image || '/images/missing.png'}
-                    alt={`Image de ${translatedName}`}
+                    alt={translatedName}
                   />
                   <p className="poke-name">{translatedName}</p>
                 </>
