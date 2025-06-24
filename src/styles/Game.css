@@ -6,29 +6,34 @@
   background-color: var(--gba-bg);
   color: var(--gba-text);
   min-height: 100vh;
+  position: relative;
 }
 
 .back-button {
   position: absolute;
   top: 20px;
   left: 20px;
-  background-color: var(--gba-button-bg);
-  color: var(--gba-button-text);
-  border: 2px solid var(--gba-border);
+  background-color: #90caf9 !important;
+  color: black; /* TEXTE NOIR FIXE */
+  border: 2px solid #000; /* ou var(--gba-border) si tu préfères */
   border-radius: 6px;
   padding: 6px 12px;
   font-size: 16px;
   cursor: pointer;
-  box-shadow: var(--gba-shadow);
+  box-shadow: 2px 2px 4px #444;
+  font-family: var(--gba-font);
+  transition: transform 0.2s ease-in-out;
 }
 
 .back-button:hover {
-  background-color: var(--gba-button-hover);
+  transform: scale(1.05); /* EFFET ZOOM */
+  background-color: #64b5f6; /* BLEU UN PEU PLUS FONCÉ */
 }
 
 .game-header {
   text-align: center;
   margin-bottom: 20px;
+  padding-top: 10px;
 }
 
 .game-title {
@@ -57,13 +62,16 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 12px;
+  gap: 26px;
 }
 
 .card-wrapper {
   display: flex;
   flex-direction: column;
   align-items: center;
+  width: 120px;
+  height: 170px;
+  position: relative;
 }
 
 .card-name {
@@ -74,6 +82,7 @@
   border: 1px solid #aaa;
   padding: 2px 6px;
   border-radius: 4px;
+  text-align: center;
 }
 
 .board {
@@ -96,15 +105,31 @@
   display: flex;
   align-items: center;
   justify-content: center;
+  padding: 0;
 }
 
-/* Couleur de fond des cartes posées selon le camp */
+.board-slot .card {
+  width: 100%;
+  height: 100%;
+  box-sizing: border-box;
+}
+
 .owned-player {
-  border: 3px solid #3498db;
+  border: 3px solid #3498db !important;
+  border-radius: 6px;
 }
 
 .owned-enemy {
-  border: 3px solid #e74c3c;
+  border: 3px solid #e74c3c !important;
+  border-radius: 6px;
+}
+
+/* Verso dans deck ennemi */
+.card.hidden img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 6px;
 }
 
 /* Modal de fin de partie */
@@ -117,11 +142,12 @@
   border: 3px solid var(--gba-border);
   padding: 30px;
   text-align: center;
-  z-index: 10;
+  z-index: 100;
   width: 90%;
-  max-width: 400px;
+  max-width: 450px;
   border-radius: 10px;
   box-shadow: var(--gba-shadow);
+  opacity: 1;
 }
 
 .end-modal h2 {
@@ -151,4 +177,9 @@
   justify-content: center;
   gap: 12px;
   margin-top: 10px;
+}
+
+.card-wrapper.selected {
+  outline: 3px solid gold;
+  outline-offset: 2px;
 }

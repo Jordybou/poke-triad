@@ -30,6 +30,7 @@ function Game() {
   const [captureChoice, setCaptureChoice] = useState(null);
   const [captureConfirmed, setCaptureConfirmed] = useState(false);
   const [elementTiles, setElementTiles] = useState([]);
+  const [originalEnemyDeck, setOriginalEnemyDeck] = useState([]);
 
   const playerScore = flatBoard.filter(card => card?.owner === 'player').length;
   const enemyScore = flatBoard.filter(card => card?.owner === 'enemy').length;
@@ -44,11 +45,19 @@ function Game() {
         dispatch(setPlayerDeck(defaultDeck));
       }
 
-      dispatch(generateEnemyDeck());
+      const enemy = generateEnemyDeck();
+      dispatch(enemy);
+      setOriginalEnemyDeck(enemy.payload);
     }
 
     initializeGame();
   }, [dispatch]);
+
+  useEffect(() => {
+    if (Array.isArray(enemyDeck) && enemyDeck.length === 5 && Array.isArray(originalEnemyDeck) && originalEnemyDeck.length === 0) {
+      setOriginalEnemyDeck(enemyDeck);
+    }
+  }, [enemyDeck, originalEnemyDeck]);
 
   useEffect(() => {
     if (!activeRules.includes('Élémentaire') || playerDeck.length === 0 || enemyDeck.length === 0) {
@@ -78,9 +87,22 @@ function Game() {
   }, [activeRules, playerDeck, enemyDeck]);
 
   const handleCardClick = (card, index) => {
-    if (turn !== 'player' || selectedCard || flatBoard.some(slot => slot?.id === card.id)) return;
-    setSelectedCard({ ...card, index });
+    if (turn !== 'player' || flatBoard.some(slot => slot?.id === card.id)) return;
+
+    if (selectedCard?.id === card.id) {
+      setSelectedCard(null);
+    } else {
+      setSelectedCard({ ...card, index });
+    }
   };
+
+  useEffect(() => {
+    if (!showEndModal && isGameOver(board)) {
+      console.log('🧩 Vérif fin de partie - Board:', flatBoard.length);
+      dispatch(endGame());
+      resolveEndGame(board);
+    }
+  }, [board, dispatch, showEndModal]);
 
   const handleSlotClick = (row, col) => {
     if (!selectedCard || board[row][col]) return;
@@ -169,20 +191,40 @@ function Game() {
 
         dispatch(setBoard(aiUpdated));
 
-        setTimeout(() => {
-          const cleared = aiUpdated.map(row =>
-            row.map(cell => (cell ? { ...cell, flash: false } : null))
-          );
-          dispatch(setBoard(cleared));
-        }, 500);
+        // Vérification manuelle du nombre total de cartes posées (évite le bug de setBoard async)
+        const totalCards = aiUpdated.flat().filter(Boolean).length;
+        console.log('🧩 Cartes posées totales :', totalCards);
 
-        if (isGameOver(aiUpdated)) {
+        if (totalCards === 9) {
+          console.log('🏁 FIN détectée – 9 cartes posées.');
           dispatch(endGame());
           resolveEndGame(aiUpdated);
           return;
         }
 
-        dispatch(switchTurn());
+        // Vérification classique avec isGameOver (optionnelle mais conservée si besoin)
+        const isOver = isGameOver(aiUpdated);
+        console.log("🎯 Résultat isGameOver() :", isOver);
+        if (isOver) {
+          dispatch(endGame());
+          resolveEndGame(aiUpdated);
+          return;
+        }
+
+        setTimeout(() => {
+          const count = aiUpdated.flat().filter(c => c).length;
+          console.log('🔁 Vérification finale IA – cartes placées :', count);
+
+          if (!showEndModal && isGameOver(aiUpdated)) {
+            console.log('🎯 Fin de partie détectée manuellement après IA');
+            dispatch(endGame());
+            resolveEndGame(aiUpdated);
+          }
+        }, 100);
+
+        if (!isGameOver(aiUpdated)) {
+          dispatch(switchTurn());
+        }
       }
     }, 500);
   };
@@ -205,9 +247,8 @@ function Game() {
 
   return (
     <div className="game-container">
-      <button className="back-button" onClick={() => navigate('/')}>← Retour</button>
-
       <div className="game-header">
+        <button className="back-button" onClick={() => navigate('/')}>← Retour</button>
         <h1 className="game-title">🎮 Poké-Triad</h1>
         <p className="game-turn">Tour : {turn === 'player' ? 'Joueur' : 'Ennemi'}</p>
         <p className="game-score">Score – Joueur : {playerScore} | Ennemi : {enemyScore}</p>
@@ -237,8 +278,15 @@ function Game() {
         <div className="enemy-deck">
           {enemyDeck.map((card, index) => (
             <div key={index} className="card-wrapper">
-              <p className="card-name">???</p>
-              <Card card={{ ...card, hidden: true }} source="enemy" />
+              {activeRules.includes('Open') && (
+                <p className="card-name">{card.frenchName || card.name}</p>
+              )}
+              <Card
+                card={{ ...card, hidden: !activeRules.includes('Open') }}
+                source="enemy"
+                inDeck={true}
+                faceDown={!activeRules.includes('Open')}
+              />
             </div>
           ))}
         </div>
@@ -260,11 +308,11 @@ function Game() {
               <button onClick={() => navigate('/')}>Retour au menu</button>
             </>
           )}
-          {winner === 'player' && !captureConfirmed && (
+          {winner === 'player' && !captureConfirmed && originalEnemyDeck?.length >= 1 && (
             <>
               <h2>Victoire ! Choisissez un Pokémon à capturer :</h2>
               <div className="capture-choices">
-                {enemyDeck.map((card, index) => (
+                {originalEnemyDeck.map((card, index) => (
                   <div
                     key={index}
                     className={`card-wrapper ${captureChoice?.id === card.id ? 'selected' : ''}`}

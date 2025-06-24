@@ -1,31 +1,58 @@
 @import './variables.css';
 
+/* ========== ANIMATIONS ========== */
 @keyframes flash {
-
-  0%,
-  100% {
+  0%, 100% {
     box-shadow: 0 0 0 2px transparent;
+    opacity: 1;
   }
-
   50% {
     box-shadow: 0 0 10px 4px yellow;
+    opacity: 0.2;
   }
-
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0.2; }
 }
 
 .flash-effect {
   animation: flash 0.2s ease-in-out 3;
 }
 
+/* ========== WRAPPER GENERAL ========== */
+.card-wrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  position: relative;
+  width: 100%;
+  height: 100%;
+}
+
+/* ========== NOM DU POKEMON ========== */
+.card-wrapper .card-name {
+  position: absolute;
+  top: -28px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-family: 'Press Start 2P', monospace;
+  font-size: 10px;
+  white-space: nowrap;
+  padding: 3px 6px;
+  background-color: white;
+  border: 2px solid #444;
+  border-radius: 6px;
+  z-index: 3;
+  box-shadow: 1px 1px 0 #aaa;
+  pointer-events: none;
+  transition: transform 0.2s ease;
+}
+
+/* ========== CARTE DE BASE ========== */
 .card {
   position: relative;
-  width: 120px;
-  height: 150px;
+  width: 100%;
+  aspect-ratio: 3 / 4;
   background-color: #fefefe;
   border: 4px solid black;
-  border-radius: 6px;
+  border-radius: 8px;
   font-family: 'VT323', monospace;
   display: flex;
   flex-direction: column;
@@ -33,97 +60,51 @@
   align-items: center;
   box-shadow: inset 0 0 0 2px #000;
   box-sizing: border-box;
+  padding: 0;
+  margin: 0;
   transition: transform 0.2s ease;
-  padding: 4px;
+  overflow: hidden;
 }
 
-.card-name {
-  position: absolute;
-  top: -20px;
-  left: 50%;
-  transform: translateX(-50%);
-  width: fit-content;
-  max-width: 100%;
-  white-space: nowrap;
-  font-size: 14px;
-  text-align: center;
-  font-family: 'Press Start 2P', monospace;
-  background: #fff;
-  border: 2px solid #444;
-  border-radius: 6px;
-  padding: 2px 6px;
-  z-index: 2;
-  box-shadow: 1px 1px 0 #ccc;
+/* ========== BORDURES JOUEUR/ENNEMI ========== */
+.blue-border {
+  border-color: #0066ff;
+  box-shadow: 0 0 0 2px #66b3ff;
 }
 
+.red-border {
+  border-color: #cc0000;
+  box-shadow: 0 0 0 2px #ff6666;
+}
+
+/* ========== SURVOL & SELECTION ========== */
+.card-wrapper:hover .card,
+.card-wrapper:hover .card-name,
+.card.selected,
+.card.selected + .card-name {
+  transform: scale(1.05);
+  outline: 2px solid #00f;
+  z-index: 3;
+}
+
+/* ========== IMAGE POKEMON ========== */
 .card-middle {
   display: flex;
   align-items: center;
   justify-content: center;
   position: relative;
   width: 100%;
+  flex-grow: 1;
 }
 
 .card-image {
-  width: 60px;
-  height: 60px;
+  width: 64px;
+  height: 64px;
   image-rendering: pixelated;
   opacity: 0.8;
 }
 
-.card-bottom {
-  display: flex;
-  justify-content: space-between;
-  width: 100%;
-  padding: 0 4px;
-}
-
-.card-type {
-  font-size: 16px;
-}
-
-/* Bordures colorées selon le camp */
-.blue-border {
-  border-color: #3498db;
-}
-
-.red-border {
-  border-color: #e74c3c;
-}
-
-/* Carte sélectionnée (zoom) */
-.selected {
-  transform: scale(1.1);
-  outline: 2px solid #00f;
-  z-index: 2;
-}
-
-/* Face verso */
-.card-back-wrapper {
-  width: 100%;
-  height: 100%;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-}
-
-.card-back-image {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  border-radius: 6px;
-}
-
-.card-bonus {
-  box-shadow: 0 0 8px 3px limegreen;
-  transition: box-shadow 0.3s ease-in-out;
-}
-
-.card-malus {
-  box-shadow: 0 0 8px 2px crimson;
-  transition: box-shadow 0.3s ease-in-out;
-}
-
+/* ========== ELEMENT / ICONE TYPE ========== */
 .card-type-icon,
 .card-element-icon {
   position: absolute;
@@ -134,12 +115,15 @@
   opacity: 0.9;
 }
 
-.card-element {
+.fallback-emoji {
+  font-size: 20px;
   position: absolute;
-  bottom: 4px;
-  right: 4px;
+  bottom: 2px;
+  right: 2px;
+  z-index: 2;
 }
 
+/* ========== VALEURS DIRECTIONNELLES ========== */
 .value {
   position: absolute;
   font-weight: bold;
@@ -181,15 +165,90 @@
   color: crimson;
 }
 
-.fallback-emoji {
-  font-size: 20px;
-  position: absolute;
-  bottom: 2px;
-  right: 2px;
-  z-index: 2;
+/* ========== BONUS / MALUS ========== */
+.card-bonus {
+  box-shadow: 0 0 8px 3px limegreen;
+  transition: box-shadow 0.3s ease-in-out;
 }
 
-.card:hover {
-  cursor: pointer;
-  transform: scale(1.05);
+.card-malus {
+  box-shadow: 0 0 8px 2px crimson;
+  transition: box-shadow 0.3s ease-in-out;
+}
+
+/* ========== FACE VERSO ========== */
+.card-back-wrapper {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  height: 100%;     
+  min-height: 120px;
+}
+
+.card-back-image {
+  width: 100%;
+  height: auto;
+  max-height: 100%;
+  object-fit: contain;
+}
+
+/* ========== DECK ET BOARD ========== */
+.card.in-deck {
+  width: 100%;
+  aspect-ratio: 3 / 4;
+  height: 100%;
+  min-width: 80px;
+  max-height: none;
+}
+
+.card.in-deck .card-image {
+  width: 80px;
+  height: 80px;
+  opacity: 0.85;
+}
+
+.card.in-board {
+  width: 100%;
+  height: 100%;
+  padding: 0;
+  margin: 0;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  aspect-ratio: unset;
+}
+
+/* Le nom est masqué quand la carte est sur le plateau */
+.card.in-board + .card-name {
+  display: none;
+}
+
+/* Plein espace sur board */
+.board-cell .card-wrapper,
+.board-cell .card {
+  width: 100%;
+  height: 100%;
+}
+
+/* Forcer le dos à prendre toute la place même si parent mal dimensionné */
+.card-back-wrapper {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  margin: 0;
+  padding: 0;
+  z-index: 2;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.card-back-wrapper img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
 }

@@ -12,7 +12,7 @@ function Card({
   bonus = null,
   malus = null,
   element = null,
-  flash = false, // 👈 Nouvelle prop pour effet flash
+  flash = false,
 }) {
   if (!card) return null;
 
@@ -20,7 +20,8 @@ function Card({
   const bonusClass = bonus ? 'card-bonus' : '';
   const malusClass = malus ? 'card-malus' : '';
   const flashClass = flash ? 'flash-effect' : '';
-  const cardClasses = `card ${borderColor} ${selected ? 'selected' : ''} ${zoomable ? 'zoomable' : ''} ${bonusClass} ${malusClass} ${flashClass}`;
+  const contextClass = inDeck ? 'in-deck' : 'in-board';
+  const cardClasses = `card ${contextClass} ${borderColor} ${selected ? 'selected' : ''} ${zoomable ? 'zoomable' : ''} ${bonusClass} ${malusClass} ${flashClass}`;
 
   const getTypeIcon = (type) => {
     if (!type) return null;
@@ -36,55 +37,50 @@ function Card({
   };
 
   return (
-    <div className={cardClasses} onClick={onClick}>
+    <div className="card-wrapper">
+      {/* Affiche le nom uniquement en deck et si la carte est visible */}
       {(inDeck && !faceDown && !card.hidden) && (
         <div className="card-name">{card.frenchName || card.name}</div>
       )}
 
-      {(faceDown || card.hidden) ? (
-        <div className="card-back-wrapper">
-          <img src="/images/card-back.png" alt="Dos de carte" className="card-back-image" />
-        </div>
-      ) : (
-        <>
-          {renderValue(card.top, 'top')}
-          {renderValue(card.left, 'left')}
-          {renderValue(card.right, 'right')}
-          {renderValue(card.bottom, 'bottom')}
+      <div className={cardClasses} onClick={onClick}>
+        {/* Dos de carte si face cachée */}
+        {(faceDown || card.hidden) ? (
+          <div className="card-back-wrapper">
+            <img src="/images/card-back.png" alt="Dos de carte" className="card-back-image" />
+          </div>
+        ) : (
+          <>
+            {renderValue(card.top, 'top')}
+            {renderValue(card.left, 'left')}
+            {renderValue(card.right, 'right')}
+            {renderValue(card.bottom, 'bottom')}
 
-          <img src={card.image} alt={card.frenchName || card.name} className="card-image" />
+            <div className="card-middle">
+              <img
+                src={card.image}
+                alt={card.frenchName || card.name}
+                className="card-image"
+              />
 
-          {card.type && (
-            <img
-              src={getTypeIcon(card.type)}
-              alt={card.type}
-              className="card-element-icon"
-              onError={(e) => {
-                const emoji = getTypeEmoji(card.type);
-                e.target.replaceWith(Object.assign(document.createElement('span'), {
-                  className: 'fallback-emoji',
-                  innerText: emoji,
-                }));
-              }}
-            />
-          )}
-
-          {element && (
-            <img
-              src={getTypeIcon(element)}
-              alt={element}
-              className="card-element-icon"
-              onError={(e) => {
-                const emoji = getTypeEmoji(element);
-                e.target.replaceWith(Object.assign(document.createElement('span'), {
-                  className: 'fallback-emoji',
-                  innerText: emoji,
-                }));
-              }}
-            />
-          )}
-        </>
-      )}
+              {(card.type || element) && (
+                <img
+                  src={getTypeIcon(element || card.type)}
+                  alt={element || card.type}
+                  className="card-element-icon"
+                  onError={(e) => {
+                    const emoji = getTypeEmoji(element || card.type);
+                    e.target.replaceWith(Object.assign(document.createElement('span'), {
+                      className: 'fallback-emoji',
+                      innerText: emoji,
+                    }));
+                  }}
+                />
+              )}
+            </div>
+          </>
+        )}
+      </div>
     </div>
   );
 }

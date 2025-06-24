@@ -4,90 +4,89 @@ import { useNavigate } from 'react-router-dom';
 import '../styles/Rules.css';
 
 const ruleData = {
-  mur: {
+  Mur: {
     label: 'Mur',
     icon: '🧱',
-    description: "Il n'y a pas de bord : une carte peut capturer en regardant au-delà du plateau (ex: la case 0 regarde la 2).",
+    description: "Il n'y a pas de bord : une carte peut capturer en regardant au-delà du plateau.",
   },
-  plus: {
+  Plus: {
     label: 'Plus',
     icon: '➕',
     description: "Capture si deux additions de valeurs adjacentes sont identiques.",
   },
-  combo: {
+  Combo: {
     label: 'Combo',
     icon: '🔁',
     description: "Une capture déclenche une réaction en chaîne.",
   },
-  identique: {
+  Identique: {
     label: 'Identique',
     icon: '🔗',
     description: "Capture si deux valeurs adjacentes sont égales.",
   },
-  open: {
+  Open: {
     label: 'Open',
     icon: '👁️',
     description: "Deck visible par tous.",
   },
-  ordre: {
+  Ordre: {
     label: 'Ordre',
     icon: '📜',
     description: "Les cartes doivent être jouées dans l'ordre.",
   },
-  élémentaire: {
+  Elémentaire: {
     label: 'Élémentaire',
-    icon: '📈',
-    description: "Bonus de +1 aux cartes du même type posées sur leur case élément. Malus -1 si c'est leur faiblesse.",
+    icon: '🌿',
+    description: "Bonus/malus si la carte correspond ou non à l'élément de la case.",
   },
-  chaos: {
+  Chaos: {
     label: 'Chaos',
-    icon: '💥',
-    description: "En cas de défaite, le joueur perd une carte au hasard.",
+    icon: '🎲',
+    description: "La carte jouée est choisie aléatoirement dans votre main.",
   },
 };
 
-export default function Rules() {
-  const rules = useSelector((state) => state.rules);
+const Rules = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
 
+  const rules = useSelector((state) => state.rules);
+  const unlockedRules = rules?.unlockedRules || [];
+  const activeRules = rules?.activeRules || [];
+
+  const handleToggle = (rule) => {
+    dispatch(toggleRule(rule));
+  };
+
   return (
     <div className="rules-container">
-      <button className="back-button" onClick={() => navigate('/')}>← Retour</button>
-      <h1>Règles Spéciales</h1>
-      <div className="rules-grid">
-        {rules.map((rule) => {
-          const { name, active, unlocked } = rule;
-          const key = name.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
-          const data = ruleData[key] || {};
+      <h2>Règles débloquées</h2>
+      <div className="rules-list">
+        {Object.entries(ruleData).map(([key, data]) => {
+          const isUnlocked = unlockedRules.includes(key);
+          const isActive = activeRules.includes(key);
 
           return (
             <div
-              key={name}
-              className={`rule-box ${unlocked ? 'unlocked' : 'locked'}`}
-              title={unlocked ? data.description : 'Règle verrouillée'}
+              key={key}
+              className={`rule-card ${isUnlocked ? '' : 'locked'}`}
+              onClick={() => isUnlocked && handleToggle(key)}
             >
-              <div className="rule-icon">{data.icon || '❓'}</div>
-              <div className="rule-name">{data.label || name}</div>
-              {unlocked ? (
-                <>
-                  <p className="rule-description">{data.description}</p>
-                  <label className="rule-toggle">
-                    <input
-                      type="checkbox"
-                      checked={active}
-                      onChange={() => dispatch(toggleRule(name))}
-                    />
-                    Activée
-                  </label>
-                </>
-              ) : (
-                <div className="lock-icon">🔒</div>
+              <h3>
+                {data.icon} {data.label}
+              </h3>
+              <p>{data.description}</p>
+              {isUnlocked && (
+                <input type="checkbox" checked={isActive} readOnly />
               )}
+              {!isUnlocked && <div className="lock">🔒</div>}
             </div>
           );
         })}
       </div>
+      <button onClick={() => navigate('/')}>Retour au menu</button>
     </div>
   );
-}
+};
+
+export default Rules;
