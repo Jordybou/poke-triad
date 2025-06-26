@@ -14,8 +14,8 @@
   top: 20px;
   left: 20px;
   background-color: #90caf9 !important;
-  color: black; /* TEXTE NOIR FIXE */
-  border: 2px solid #000; /* ou var(--gba-border) si tu préfères */
+  color: black;
+  border: 2px solid #000;
   border-radius: 6px;
   padding: 6px 12px;
   font-size: 16px;
@@ -26,8 +26,8 @@
 }
 
 .back-button:hover {
-  transform: scale(1.05); /* EFFET ZOOM */
-  background-color: #64b5f6; /* BLEU UN PEU PLUS FONCÉ */
+  transform: scale(1.05);
+  background-color: #64b5f6;
 }
 
 .game-header {
@@ -124,7 +124,6 @@
   border-radius: 6px;
 }
 
-/* Verso dans deck ennemi */
 .card.hidden img {
   width: 100%;
   height: 100%;
@@ -133,12 +132,23 @@
 }
 
 /* Modal de fin de partie */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.4);
+  backdrop-filter: blur(2px);
+  z-index: 99;
+}
+
 .end-modal {
   position: fixed;
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  background: var(--gba-modal-bg);
+  background-color: rgba(255, 255, 255, 0.95);
   border: 3px solid var(--gba-border);
   padding: 30px;
   text-align: center;
@@ -182,4 +192,25 @@
 .card-wrapper.selected {
   outline: 3px solid gold;
   outline-offset: 2px;
+}
+
+.capture-choices .card-wrapper {
+  position: relative;
+  width: 120px;
+  height: 170px;
+}
+
+.capture-choices .card-wrapper.already-captured::after {
+  content: '';
+  position: absolute;
+  bottom: 6px;
+  right: 6px;
+  width: 24px;
+  height: 24px;
+  background-image: url('../assets/pokeball.png');
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-position: center;
+  opacity: 0.9;
+  z-index: 10;
 }

@@ -2,16 +2,18 @@ import { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 import { selectPlayerDeck, setPlayerDeck, removeCardFromPlayerDeck } from '../redux/slices/playerDeckSlice';
-import { generateEnemyDeck, selectEnemyDeck, removeCardFromEnemyDeck } from '../redux/slices/enemyDeckSlice';
+import { setEnemyDeck, selectEnemyDeck, removeCardFromEnemyDeck } from '../redux/slices/enemyDeckSlice';
+import { generateDeck, generateDefaultDeck } from '../utils/generate';
 import { placeCard, selectBoard, resetBoard, setBoard } from '../redux/slices/boardSlice';
 import { endGame, resetGame, selectTurn, switchTurn } from '../redux/slices/gameSlice';
-import { capturePokemon } from '../redux/slices/pokedexSlice';
+import { capturePokemon, selectCaptured } from '../redux/slices/pokedexSlice';
 import { selectActiveRules } from '../redux/slices/rulesSlice';
 import Card from './Card';
 import '../styles/Game.css';
 import { applyCaptureRules, isGameOver } from '../utils/logic';
 import Board from './Board';
-import { generateDefaultDeck } from '../utils/generate';
+import pokeball from '../assets/pokeball.png';
+import { store } from '../redux/store';
 
 function Game() {
   const dispatch = useDispatch();
@@ -23,6 +25,7 @@ function Game() {
   const flatBoard = board?.flat?.() || [];
   const turn = useSelector(selectTurn);
   const activeRules = useSelector(selectActiveRules);
+  const captured = useSelector(selectCaptured);
 
   const [selectedCard, setSelectedCard] = useState(null);
   const [showEndModal, setShowEndModal] = useState(false);
@@ -31,6 +34,7 @@ function Game() {
   const [captureConfirmed, setCaptureConfirmed] = useState(false);
   const [elementTiles, setElementTiles] = useState([]);
   const [originalEnemyDeck, setOriginalEnemyDeck] = useState([]);
+  const [gameInitialized, setGameInitialized] = useState(false);
 
   const playerScore = flatBoard.filter(card => card?.owner === 'player').length;
   const enemyScore = flatBoard.filter(card => card?.owner === 'enemy').length;
@@ -45,9 +49,10 @@ function Game() {
         dispatch(setPlayerDeck(defaultDeck));
       }
 
-      const enemy = generateEnemyDeck();
-      dispatch(enemy);
-      setOriginalEnemyDeck(enemy.payload);
+      const deck = await generateDeck();
+      dispatch(setEnemyDeck(deck));
+      setOriginalEnemyDeck(deck);
+      setGameInitialized(true);
     }
 
     initializeGame();
@@ -97,8 +102,10 @@ function Game() {
   };
 
   useEffect(() => {
+    const totalCards = board.flat().filter(Boolean).length;
+    if (totalCards === 0 || !gameInitialized) return;
+
     if (!showEndModal && isGameOver(board)) {
-      console.log('🧩 Vérif fin de partie - Board:', flatBoard.length);
       dispatch(endGame());
       resolveEndGame(board);
     }
@@ -150,83 +157,12 @@ function Game() {
       return;
     }
 
-    dispatch(switchTurn());
-
     setTimeout(() => {
-      const coords = [];
-      updated.forEach((r, ri) =>
-        r.forEach((cell, ci) => {
-          if (!cell) coords.push({ row: ri, col: ci });
-        })
-      );
-
-      const aiCard = enemyDeck.find(c => !updated.flat().some(b => b?.id === c.id));
-      if (aiCard && coords.length > 0) {
-        const { row: aiRow, col: aiCol } = coords[Math.floor(Math.random() * coords.length)];
-        const aiToPlace = {
-          ...aiCard,
-          owner: 'enemy',
-          values: {
-            top: aiCard.top,
-            right: aiCard.right,
-            bottom: aiCard.bottom,
-            left: aiCard.left,
-          },
-        };
-
-        dispatch(placeCard({ row: aiRow, col: aiCol, card: aiToPlace }));
-        dispatch(removeCardFromEnemyDeck(aiCard.id));
-
-        const aiUpdated = applyCaptureRules(
-          updated,
-          aiRow,
-          aiCol,
-          aiToPlace,
-          activeRules,
-          elementTiles.reduce((acc, { row, col, type }) => {
-            acc[`${row}-${col}`] = type;
-            return acc;
-          }, {})
-        );
-
-        dispatch(setBoard(aiUpdated));
-
-        // Vérification manuelle du nombre total de cartes posées (évite le bug de setBoard async)
-        const totalCards = aiUpdated.flat().filter(Boolean).length;
-        console.log('🧩 Cartes posées totales :', totalCards);
-
-        if (totalCards === 9) {
-          console.log('🏁 FIN détectée – 9 cartes posées.');
-          dispatch(endGame());
-          resolveEndGame(aiUpdated);
-          return;
-        }
-
-        // Vérification classique avec isGameOver (optionnelle mais conservée si besoin)
-        const isOver = isGameOver(aiUpdated);
-        console.log("🎯 Résultat isGameOver() :", isOver);
-        if (isOver) {
-          dispatch(endGame());
-          resolveEndGame(aiUpdated);
-          return;
-        }
-
-        setTimeout(() => {
-          const count = aiUpdated.flat().filter(c => c).length;
-          console.log('🔁 Vérification finale IA – cartes placées :', count);
-
-          if (!showEndModal && isGameOver(aiUpdated)) {
-            console.log('🎯 Fin de partie détectée manuellement après IA');
-            dispatch(endGame());
-            resolveEndGame(aiUpdated);
-          }
-        }, 100);
-
-        if (!isGameOver(aiUpdated)) {
-          dispatch(switchTurn());
-        }
-      }
-    }, 500);
+      dispatch(switchTurn());
+      setTimeout(() => {
+        playEnemyTurn();
+      }, 300); // On laisse le temps à Redux de switcher le tour
+    }, 500); // délai entre le tour du joueur et celui de l’IA
   };
 
   const resolveEndGame = (finalBoard) => {
@@ -237,19 +173,117 @@ function Game() {
   };
 
   const confirmCapture = () => {
-    if (captureChoice) {
+    if (!captureChoice) return;
+
+    const isAlreadyCaptured = captured.some(card => card.name === captureChoice.name);
+
+    // On capture uniquement si ce n'est pas déjà dans le Pokédex
+    if (!isAlreadyCaptured) {
       dispatch(capturePokemon(captureChoice));
-      setCaptureConfirmed(true);
     }
+
+    // On vérifie si la carte existe déjà dans le deck actif
+    const currentDeck = JSON.parse(localStorage.getItem('currentDeck')) || [];
+    const alreadyInDeck = currentDeck.some(c => c.id === captureChoice.id);
+
+    // Si elle n'y est pas, on l'ajoute
+    if (!alreadyInDeck) {
+      const updatedDeck = [...currentDeck, captureChoice].slice(0, 5); // max 5
+      localStorage.setItem('currentDeck', JSON.stringify(updatedDeck));
+    }
+
+    setCaptureConfirmed(true); // dans tous les cas, on passe à l'écran final
   };
 
-  const restart = () => navigate('/game');
+  const restart = async () => {
+    dispatch(resetBoard());
+    dispatch(resetGame());
+    setSelectedCard(null);
+    setShowEndModal(false);
+    setWinner(null);
+    setCaptureChoice(null);
+    setCaptureConfirmed(false);
+    setElementTiles([]);
+
+    const storedDeck = JSON.parse(localStorage.getItem('currentDeck'));
+
+    if (Array.isArray(storedDeck) && storedDeck.length === 5) {
+      dispatch(setPlayerDeck(storedDeck));
+    } else {
+      const defaultDeck = await generateDefaultDeck();
+      dispatch(setPlayerDeck(defaultDeck));
+    }
+
+    const enemy = await generateDeck();
+    dispatch(setEnemyDeck(enemy));
+    setOriginalEnemyDeck(enemy);
+  };
+
+  const playEnemyTurn = () => {
+    const updated = store.getState().board.grid; // Récupère l’état actuel du plateau
+    if (!Array.isArray(updated) || !Array.isArray(updated[0])) return;
+
+    const coords = [];
+    updated.forEach((r, ri) =>
+      r.forEach((cell, ci) => {
+        if (!cell) coords.push({ row: ri, col: ci });
+      })
+    );
+
+    const enemyDeckCurrent = store.getState().enemy.deck;
+    if (!Array.isArray(enemyDeckCurrent)) {
+      console.error('Le deck ennemi est invalide :', enemyDeckCurrent);
+      return;
+    }
+    const aiCard = enemyDeckCurrent.find(c => !updated.flat().some(b => b?.id === c.id));
+    if (!aiCard || coords.length === 0) return;
+
+    const { row: aiRow, col: aiCol } = coords[Math.floor(Math.random() * coords.length)];
+    const aiToPlace = {
+      ...aiCard,
+      owner: 'enemy',
+      values: {
+        top: aiCard.top,
+        right: aiCard.right,
+        bottom: aiCard.bottom,
+        left: aiCard.left,
+      },
+      image: aiCard.image || aiCard.sprite || '',
+    };
+
+    dispatch(placeCard({ row: aiRow, col: aiCol, card: aiToPlace }));
+    dispatch(removeCardFromEnemyDeck(aiCard.id));
+
+    const aiUpdated = applyCaptureRules(
+      updated,
+      aiRow,
+      aiCol,
+      aiToPlace,
+      activeRules,
+      elementTiles.reduce((acc, { row, col, type }) => {
+        acc[`${row}-${col}`] = type;
+        return acc;
+      }, {})
+    );
+
+    dispatch(setBoard(aiUpdated));
+
+    const totalCards = aiUpdated.flat().filter(Boolean).length;
+    if (totalCards === 9 || isGameOver(aiUpdated)) {
+      dispatch(endGame());
+      resolveEndGame(aiUpdated);
+      return;
+    }
+
+    dispatch(switchTurn());
+  };
 
   return (
     <div className="game-container">
       <div className="game-header">
         <button className="back-button" onClick={() => navigate('/')}>← Retour</button>
         <h1 className="game-title">🎮 Poké-Triad</h1>
+
         <p className="game-turn">Tour : {turn === 'player' ? 'Joueur' : 'Ennemi'}</p>
         <p className="game-score">Score – Joueur : {playerScore} | Ennemi : {enemyScore}</p>
         <p className="game-rules">
@@ -293,47 +327,96 @@ function Game() {
       </div>
 
       {showEndModal && (
-        <div className="end-modal">
-          {winner === 'draw' && (
-            <>
-              <h2>Égalité...</h2>
-              <button onClick={restart}>Rejouer</button>
-              <button onClick={() => navigate('/')}>Retour au menu</button>
-            </>
-          )}
-          {winner === 'enemy' && (
-            <>
-              <h2>Perdu...</h2>
-              <button onClick={restart}>Rejouer</button>
-              <button onClick={() => navigate('/')}>Retour au menu</button>
-            </>
-          )}
-          {winner === 'player' && !captureConfirmed && originalEnemyDeck?.length >= 1 && (
-            <>
-              <h2>Victoire ! Choisissez un Pokémon à capturer :</h2>
-              <div className="capture-choices">
-                {originalEnemyDeck.map((card, index) => (
-                  <div
-                    key={index}
-                    className={`card-wrapper ${captureChoice?.id === card.id ? 'selected' : ''}`}
-                    onClick={() => setCaptureChoice(card)}
-                  >
-                    <p className="card-name">{card.frenchName || card.name}</p>
-                    <Card card={card} source="enemy" />
+        <>
+          <div className="modal-overlay" />
+          <div className="end-modal">
+            {winner === 'draw' && (
+              <>
+                <h2>Égalité...</h2>
+                <button onClick={restart}>Rejouer</button>
+                <button onClick={() => navigate('/')}>Retour au menu</button>
+              </>
+            )}
+
+            {winner === 'enemy' && (
+              <>
+                <h2>Perdu...</h2>
+                <button onClick={restart}>Rejouer</button>
+                <button onClick={() => navigate('/')}>Retour au menu</button>
+              </>
+            )}
+
+            {winner === 'player' && !captureConfirmed && Array.isArray(originalEnemyDeck) && originalEnemyDeck.length > 0 && (() => {
+              console.log("Enemy deck original:", originalEnemyDeck.map(c => ({ name: c.name, idDex: c.idDex })));
+              const capturableCards = originalEnemyDeck.filter(card =>
+                !captured.some(c => String(c.idDex) === String(card.idDex))
+              );
+
+              if (capturableCards.length === 0) {
+                return (
+                  <>
+                    <h2>Victoire !</h2>
+                    <p>Vous avez déjà capturé tous les Pokémon ennemis !</p>
+                    <button onClick={restart}>Rejouer</button>
+                    <button onClick={() => navigate('/')}>Retour au menu</button>
+                  </>
+                );
+              }
+
+              return (
+                <>
+                  <h2>Victoire ! Choisissez un Pokémon à capturer :</h2>
+                  <div className="capture-choices">
+                    {originalEnemyDeck.map((card, index) => {
+                      const isAlreadyCaptured = captured.some(c => String(c.idDex) === String(card.idDex));
+
+                      return (
+                        <div
+                          key={index}
+                          className={`card-wrapper ${captureChoice?.id === card.id ? 'selected' : ''} ${isAlreadyCaptured ? 'already-captured' : ''}`}
+                          onClick={() => !isAlreadyCaptured && setCaptureChoice(card)}
+                          style={{
+                            position: 'relative',
+                            opacity: isAlreadyCaptured ? 0.5 : 1,
+                            filter: isAlreadyCaptured ? 'grayscale(80%)' : 'none',
+                            pointerEvents: isAlreadyCaptured ? 'none' : 'auto'
+                          }}
+                        >
+                          <p className="card-name">{card.frenchName || card.name}</p>
+                          <Card card={card} source="enemy" />
+                          {isAlreadyCaptured && (
+                            <img
+                              src={pokeball}
+                              alt="Déjà capturé"
+                              style={{
+                                position: 'absolute',
+                                bottom: '6px',
+                                right: '6px',
+                                width: '22px',
+                                height: '22px',
+                                zIndex: 10,
+                                opacity: 0.95,
+                              }}
+                            />
+                          )}
+                        </div>
+                      );
+                    })}
                   </div>
-                ))}
-              </div>
-              <button onClick={confirmCapture}>Capturer</button>
-            </>
-          )}
-          {captureConfirmed && (
-            <>
-              <h2>Bravo, vous avez attrapé {captureChoice.frenchName || captureChoice.name} !</h2>
-              <button onClick={restart}>Rejouer</button>
-              <button onClick={() => navigate('/')}>Retour au menu</button>
-            </>
-          )}
-        </div>
+                  <button onClick={confirmCapture} disabled={!captureChoice}>Capturer</button>
+                </>
+              );
+            })()}
+
+            {captureConfirmed && (
+              <>
+                <h2>Bravo, vous avez attrapé {captureChoice.frenchName || captureChoice.name} !</h2>
+                <button onClick={restart}>Rejouer</button>
+                <button onClick={() => navigate('/')}>Retour au menu</button>
+              </>
+            )}
+          </div>
+        </>
       )}
     </div>
   );

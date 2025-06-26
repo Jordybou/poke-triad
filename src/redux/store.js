@@ -19,3 +19,5 @@ export const store = configureStore({
     rules: rulesReducer,         // Règles spéciales débloquées/actives
   },
 });
+
+export default store;

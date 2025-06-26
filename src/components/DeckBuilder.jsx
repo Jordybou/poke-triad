@@ -1,7 +1,7 @@
 import { useEffect, useState, useCallback } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { addDeck } from "../redux/slices/playerDeckSlice";
-import { fetchFrenchName } from "../utils/translate";
+import { setPlayerDeck, selectPlayerDeck } from "../redux/slices/playerDeckSlice";
+import { fetchFrenchName, getTypeEmoji } from "../utils/translate";
 import "../styles/DeckBuilder.css";
 import { useNavigate } from "react-router-dom";
 
@@ -9,10 +9,19 @@ const DeckBuilder = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const captured = useSelector((state) => state.pokedex.captured);
+  const currentDeck = useSelector(selectPlayerDeck);
 
   const [selected, setSelected] = useState([]);
   const [translatedNames, setTranslatedNames] = useState({});
-  const [deckName, setDeckName] = useState("");
+
+  useEffect(() => {
+  // On réinitialise la sélection à partir du deck actuel dès que la page se charge ou que currentDeck change
+  if (currentDeck.length === 5) {
+    setSelected([...currentDeck]); // 🔁 crée une copie pour déclencher le rendu
+  } else {
+    setSelected([]); // si le deck est invalide ou incomplet
+  }
+}, [currentDeck]);
 
   useEffect(() => {
     const loadTranslations = async () => {
@@ -29,7 +38,9 @@ const DeckBuilder = () => {
       }
     };
 
-    loadTranslations();
+    if (captured.length > 0) {
+      loadTranslations();
+    }
   }, [captured]);
 
   const toggleSelect = useCallback((card) => {
@@ -49,31 +60,16 @@ const DeckBuilder = () => {
       alert("Veuillez sélectionner exactement 5 cartes.");
       return;
     }
-
-    if (!deckName.trim()) {
-      alert("Veuillez donner un nom à votre deck.");
-      return;
-    }
-
-    dispatch(addDeck({ name: deckName.trim(), cards: selected }));
-    alert("Deck créé !");
-    navigate("/decks");
+    dispatch(setPlayerDeck(selected));
+    localStorage.setItem('currentDeck', JSON.stringify(selected));
+    alert("Deck mis à jour !");
+    navigate("/");
   };
 
   return (
     <div className="deck-builder">
       <button className="back-button" onClick={() => navigate('/')}>← Retour</button>
-      <h1>Créer un Deck</h1>
-
-      <label htmlFor="deck-name">Nom du deck :</label>
-      <input
-        id="deck-name"
-        type="text"
-        value={deckName}
-        onChange={(e) => setDeckName(e.target.value)}
-        placeholder="Nom de votre deck"
-      />
-
+      <h1>Créer votre Deck</h1>
       <p>{selected.length}/5 cartes sélectionnées</p>
 
       <div className="card-grid">
@@ -84,11 +80,20 @@ const DeckBuilder = () => {
           return (
             <div
               key={card.id}
-              className={`card ${isSelected ? "selected" : ""}`}
+              className={`card-wrapper ${isSelected ? "selected" : ""}`}
               onClick={() => toggleSelect(card)}
             >
-              <img src={card.image} alt={translatedName} />
-              <p>{translatedName}</p>
+              <p className="card-name">{translatedName}</p>
+              <div className="card">
+                <div className="card-values">
+                  <span className="value top">{card.top}</span>
+                  <span className="value left">{card.left}</span>
+                  <span className="value right">{card.right}</span>
+                  <span className="value bottom">{card.bottom}</span>
+                </div>
+                <img src={card.image} alt={translatedName} />
+                <div className="card-type">{getTypeEmoji(card.type)}</div>
+              </div>
             </div>
           );
         })}

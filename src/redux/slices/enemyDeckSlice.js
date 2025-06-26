@@ -6,7 +6,7 @@ const initialState = {
 };
 
 const enemyDeckSlice = createSlice({
-  name: 'enemy',
+  name: 'enemyDeck',
   initialState,
   reducers: {
     setEnemyDeck(state, action) {
@@ -22,8 +22,9 @@ export const generateEnemyDeck = () => async (dispatch) => {
   try {
     const deck = await generateDeck();
     dispatch(setEnemyDeck(deck));
+    return deck; // ← ✅ On retourne le deck
   } catch (error) {
-    console.error("❌ Erreur lors de la génération du deck ennemi :", error);
+    return []; // Pour éviter des undefined
   }
 };
 

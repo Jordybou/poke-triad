@@ -12,26 +12,37 @@ import { useEffect } from 'react';
 import { loadAllPokemon } from './utils/loadAllPokemon';
 import { capturePokemon, setAllPokemon } from './redux/slices/pokedexSlice';
 import { generateDefaultDeck } from './utils/generate';
+import { setPlayerDeck, selectPlayerDeck } from './redux/slices/playerDeckSlice';
 
 function App() {
   const dispatch = useDispatch();
   const captured = useSelector(state => state.pokedex.captured);
+  const playerDeck = useSelector(selectPlayerDeck);
 
   useEffect(() => {
     const init = async () => {
-      // 1. Charger tous les Pokémon (sans les capturer)
+      // Charger tous les Pokémon
       const all = await loadAllPokemon();
       dispatch(setAllPokemon(all));
 
-      // 2. Capturer les Pokémon du deck de base si aucune carte n'est capturée
-      if (!captured || captured.length === 0) {
+      // Si aucun Pokémon n’a encore été capturé
+      if (captured.length === 0) {
         const base = await generateDefaultDeck();
+
+        // Capture des 5 Pokémon de base
         base.forEach(card => dispatch(capturePokemon(card)));
+
+        // Définir ce deck comme deck du joueur
+        dispatch(setPlayerDeck(base));
+      } else if (playerDeck.length === 0) {
+        // Si le joueur a déjà des cartes mais pas de deck
+        const base = captured.slice(0, 5);
+        dispatch(setPlayerDeck(base));
       }
     };
 
     init();
-  }, [dispatch]); // ← ne pas inclure `captured` ici pour éviter une boucle infinie
+  }, []); // ← une seule fois au lancement
 
   return (
     <Router>

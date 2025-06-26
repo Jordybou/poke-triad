@@ -16,13 +16,11 @@ const boardSlice = createSlice({
       const { row, col, card } = action.payload;
 
       if (!state.grid[row] || typeof state.grid[row][col] === 'undefined') {
-        console.warn("⛔️ Emplacement invalide :", row, col);
         return;
       }
 
       if (state.grid[row][col] === null) {
         state.grid[row][col] = card;
-        console.log("✅ PLACEMENT EFFECTIF :", row, col, card);
       }
     },
     setBoard: (state, action) => {
