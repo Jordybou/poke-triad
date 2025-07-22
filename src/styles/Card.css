@@ -1,6 +1,3 @@
-@import './variables.css';
-
-/* ========== ANIMATIONS ========== */
 @keyframes flash {
   0%, 100% {
     box-shadow: 0 0 0 2px transparent;
@@ -22,8 +19,9 @@
   flex-direction: column;
   align-items: center;
   position: relative;
-  width: 100%;
-  height: 100%;
+  width: 120px;
+  height: 170px;
+  box-sizing: border-box;
 }
 
 /* ========== NOM DU POKEMON ========== */
@@ -45,7 +43,21 @@
   transition: transform 0.2s ease;
 }
 
-/* ========== CARTE DE BASE ========== */
+/* ========== EFFETS SELECTION & SURVOL ========== */
+.card-wrapper:hover .card,
+.card-wrapper:hover .card-name,
+.card.selected {
+  transform: scale(1.05);
+  outline: 2px solid #00f;
+  z-index: 3;
+}
+
+.card.selected ~ .card-name {
+  transform: scale(1.05);
+  z-index: 3;
+}
+
+/* ========== CARTE BASE ========== */
 .card {
   position: relative;
   width: 100%;
@@ -60,8 +72,6 @@
   align-items: center;
   box-shadow: inset 0 0 0 2px #000;
   box-sizing: border-box;
-  padding: 0;
-  margin: 0;
   transition: transform 0.2s ease;
   overflow: hidden;
 }
@@ -75,16 +85,6 @@
 .red-border {
   border-color: #cc0000;
   box-shadow: 0 0 0 2px #ff6666;
-}
-
-/* ========== SURVOL & SELECTION ========== */
-.card-wrapper:hover .card,
-.card-wrapper:hover .card-name,
-.card.selected,
-.card.selected + .card-name {
-  transform: scale(1.05);
-  outline: 2px solid #00f;
-  z-index: 3;
 }
 
 /* ========== IMAGE POKEMON ========== */
@@ -104,8 +104,7 @@
   opacity: 0.8;
 }
 
-/* ========== ELEMENT / ICONE TYPE ========== */
-.card-type-icon,
+/* ========== ICONE DE TYPE ========== */
 .card-element-icon {
   position: absolute;
   width: 20px;
@@ -123,7 +122,7 @@
   z-index: 2;
 }
 
-/* ========== VALEURS DIRECTIONNELLES ========== */
+/* ========== VALEURS ========== */
 .value {
   position: absolute;
   font-weight: bold;
@@ -133,73 +132,41 @@
   z-index: 2;
 }
 
-.top {
-  top: 4px;
-  left: 50%;
-  transform: translateX(-50%);
-}
+.top { top: 4px; left: 50%; transform: translateX(-50%); }
+.bottom { bottom: 4px; left: 50%; transform: translateX(-50%); }
+.left { left: 4px; top: 50%; transform: translateY(-50%); }
+.right { right: 4px; top: 50%; transform: translateY(-50%); }
 
-.bottom {
-  bottom: 4px;
-  left: 50%;
-  transform: translateX(-50%);
-}
+.bonus { color: limegreen; }
+.malus { color: crimson; }
 
-.left {
-  left: 4px;
-  top: 50%;
-  transform: translateY(-50%);
-}
+.card-bonus { box-shadow: 0 0 8px 3px limegreen; }
+.card-malus { box-shadow: 0 0 8px 2px crimson; }
 
-.right {
-  right: 4px;
-  top: 50%;
-  transform: translateY(-50%);
-}
-
-.bonus {
-  color: limegreen;
-}
-
-.malus {
-  color: crimson;
-}
-
-/* ========== BONUS / MALUS ========== */
-.card-bonus {
-  box-shadow: 0 0 8px 3px limegreen;
-  transition: box-shadow 0.3s ease-in-out;
-}
-
-.card-malus {
-  box-shadow: 0 0 8px 2px crimson;
-  transition: box-shadow 0.3s ease-in-out;
-}
-
-/* ========== FACE VERSO ========== */
+/* ========== DOS DE CARTE ========== */
 .card-back-wrapper {
+  position: absolute;
+  top: 0; left: 0; right: 0; bottom: 0;
   display: flex;
   justify-content: center;
   align-items: center;
-  width: 100%;
-  height: 100%;     
-  min-height: 120px;
+  z-index: 2;
+  border-radius: 8px;
+  overflow: hidden;
 }
 
 .card-back-image {
   width: 100%;
-  height: auto;
-  max-height: 100%;
-  object-fit: contain;
+  height: 100%;
+  object-fit: cover;
+  display: block;
 }
 
-/* ========== DECK ET BOARD ========== */
+/* ========== CONTEXTES (DECK / PLATEAU) ========== */
 .card.in-deck {
   width: 100%;
   aspect-ratio: 3 / 4;
-  height: 100%;
   min-width: 80px;
-  max-height: none;
 }
 
 .card.in-deck .card-image {
@@ -220,35 +187,14 @@
   aspect-ratio: unset;
 }
 
-/* Le nom est masqué quand la carte est sur le plateau */
+/* Nom masqué sur plateau */
 .card.in-board + .card-name {
   display: none;
 }
 
-/* Plein espace sur board */
+/* Occupation totale sur plateau */
 .board-cell .card-wrapper,
 .board-cell .card {
   width: 100%;
   height: 100%;
-}
-
-/* Forcer le dos à prendre toute la place même si parent mal dimensionné */
-.card-back-wrapper {
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  margin: 0;
-  padding: 0;
-  z-index: 2;
-  border-radius: 8px;
-  overflow: hidden;
-}
-
-.card-back-wrapper img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  display: block;
 }

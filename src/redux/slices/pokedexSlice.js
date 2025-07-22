@@ -3,7 +3,7 @@ import { BADGES } from '../../utils/badges';
 
 const initialState = {
   captured: [],
-  all: [], // ← Ajouté : contient les 151 Pokémon chargés
+  all: [], // <- Ajouté : contient les 151 Pokémon chargés
   badgeCount: 0,
 };
 
@@ -24,7 +24,7 @@ const pokedexSlice = createSlice({
       }
     },
     setAllPokemon(state, action) {
-      state.all = action.payload; // ← Stockage du Pokédex complet
+      state.all = action.payload; // <- Stockage du Pokédex complet
     },
     resetPokedex() {
       return initialState;

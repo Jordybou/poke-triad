@@ -17,4 +17,7 @@
   --gba-info: #3498db;
   --gba-card-bg: #fefefe;
   --gba-card-border: #000;
+
+  --gba-overlay: rgba(0, 0, 0, 0.5);
+  --gba-secondary: #7fbdff;
 }

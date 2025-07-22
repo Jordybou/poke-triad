@@ -2,8 +2,6 @@
 
 Un jeu de **cartes stratégique** en React mêlant les mécaniques de **Triple Triad** (Final Fantasy VIII) à l’univers de **Pokémon** (1ʳᵉ génération), avec un style visuel **rétro Game Boy Advance**.
 
-![Poké-Triad Screenshot](public/images/screenshot.png)
-
 ---
 
 ## 🚀 Fonctionnalités
@@ -11,9 +9,9 @@ Un jeu de **cartes stratégique** en React mêlant les mécaniques de **Triple T
 ### 🧭 Navigation
 - Menu principal avec 5 onglets :
   - `▶️ Jouer` : Lancer une partie contre l'IA
-  - `🃏 Decks` : Créer, gérer et activer ses decks
-  - `📘 Pokédex` : Visualiser sa collection de cartes capturées
-  - `📜 Règles` : Activer ou non les règles spéciales
+  - `🃏 Decks` : Gérer son deck
+  - `📘 Pokédex` : Visualiser sa collection de cartes capturées ou non
+  - `📜 Règles` : Activer ou non les règles spéciales avec explications
   - `❌ Quitter` : Fermer l’application
 
 ---
@@ -32,8 +30,9 @@ Un jeu de **cartes stratégique** en React mêlant les mécaniques de **Triple T
 ---
 
 ### 🧠 Règles spéciales activables
-- `Ordre` : les cartes doivent être jouées dans l’ordre du deck
+- `Ordre` : les cartes doivent être jouées dans un ordre aléatoire
 - `Open` : deck ennemi visible
+(modification à venir concernant la difficulté de l'IA)
 - `Élémentaire` : certaines cases ont un type qui donne :
   - `+1` si correspondance
   - `-1` si faiblesse
@@ -60,7 +59,7 @@ Un jeu de **cartes stratégique** en React mêlant les mécaniques de **Triple T
 ## 📘 Pokédex
 - Affiche les **151 Pokémon de la 1ʳᵉ génération**
 - Cartes **capturées** affichées avec nom + image
-- Cartes **non capturées** grisées ou cachées
+- Cartes **non capturées** cachées en face verso
 - Affiche la **progression** (ex. : `48/151`)
 - Déblocage progressif de **badges** (8) :
   - Chaque badge débloque une **règle spéciale**
@@ -68,13 +67,10 @@ Un jeu de **cartes stratégique** en React mêlant les mécaniques de **Triple T
 
 ---
 
-## 🗃️ Decks personnalisés
-- Liste de tous les decks créés
-- Création d’un nouveau deck depuis le Pokédex :
-  - Jusqu’à **5 cartes**
-  - Possibilité de **dupliquer, supprimer ou renommer** un deck
-  - **Deck actif** utilisé en partie
-- Style Game Boy avec effet de sélection et confirmation
+## 🗃️ Decks 
+- Affichage du deck par défaut avec un encadrement jaune
+- Permet de modifier son jeu en séléctionnant ou en désélectionnant une carte
+- Bouton Valider le deck et Réinitialiser le deck
 
 ---
 
@@ -100,7 +96,7 @@ npm start
 🌍 Débloquer la 2ᵉ génération de Pokémon après complétion de la 1ʳᵉ
 📱 Responsive design pour mobile
 🎵 Ajout d’une ambiance sonore GBA
-🧠 IA plus intelligente (stratégie de jeu améliorée)
+🧠 IA plus intelligente (stratégie de jeu améliorée pour la règle OPEN)
 💾 Système de sauvegarde/export de decks
 🗃️ Export/sauvegarde locale de la progression
 🃏 Règle Chaos : perte de carte à la défaite

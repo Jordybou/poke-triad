@@ -44,9 +44,17 @@ function Game() {
       dispatch(resetBoard());
       dispatch(resetGame());
 
-      if (playerDeck.length === 0) {
+      const storedDeck = JSON.parse(localStorage.getItem('currentDeck'));
+      const isValidDeck = Array.isArray(storedDeck) &&
+        storedDeck.length === 5 &&
+        storedDeck.every(card => card && typeof card.idDex === 'number');
+
+      if (isValidDeck) {
+        dispatch(setPlayerDeck(storedDeck));
+      } else {
         const defaultDeck = await generateDefaultDeck();
         dispatch(setPlayerDeck(defaultDeck));
+        localStorage.setItem('currentDeck', JSON.stringify(defaultDeck));
       }
 
       const deck = await generateDeck();
@@ -92,7 +100,7 @@ function Game() {
   }, [activeRules, playerDeck, enemyDeck]);
 
   const handleCardClick = (card, index) => {
-    if (turn !== 'player' || flatBoard.some(slot => slot?.id === card.id)) return;
+    if (turn !== 'player') return;
 
     if (selectedCard?.id === card.id) {
       setSelectedCard(null);
@@ -126,7 +134,8 @@ function Game() {
     };
 
     dispatch(placeCard({ row, col, card: cardToPlace }));
-    dispatch(removeCardFromPlayerDeck(selectedCard.id));
+    console.log('Retirer la carte avec idDex :', selectedCard.idDex);
+    dispatch(removeCardFromPlayerDeck(selectedCard.idDex));
 
     const updated = applyCaptureRules(
       board,
@@ -188,8 +197,13 @@ function Game() {
 
     // Si elle n'y est pas, on l'ajoute
     if (!alreadyInDeck) {
-      const updatedDeck = [...currentDeck, captureChoice].slice(0, 5); // max 5
+      const updatedDeck = currentDeck.length < 5
+        ? [...currentDeck, captureChoice]
+        : currentDeck;
       localStorage.setItem('currentDeck', JSON.stringify(updatedDeck));
+
+      // ✅ mise à jour Redux en plus du localStorage
+      dispatch(setPlayerDeck(updatedDeck));
     }
 
     setCaptureConfirmed(true); // dans tous les cas, on passe à l'écran final
@@ -207,11 +221,16 @@ function Game() {
 
     const storedDeck = JSON.parse(localStorage.getItem('currentDeck'));
 
-    if (Array.isArray(storedDeck) && storedDeck.length === 5) {
+    const isValidDeck = Array.isArray(storedDeck) &&
+      storedDeck.length === 5 &&
+      storedDeck.every(card => card && typeof card.idDex === 'number');
+
+    if (isValidDeck) {
       dispatch(setPlayerDeck(storedDeck));
     } else {
       const defaultDeck = await generateDefaultDeck();
       dispatch(setPlayerDeck(defaultDeck));
+      localStorage.setItem('currentDeck', JSON.stringify(defaultDeck));
     }
 
     const enemy = await generateDeck();
@@ -373,7 +392,7 @@ function Game() {
                       return (
                         <div
                           key={index}
-                          className={`card-wrapper ${captureChoice?.id === card.id ? 'selected' : ''} ${isAlreadyCaptured ? 'already-captured' : ''}`}
+                          className={`card-wrapper ${captureChoice?.idDex === card.idDex ? 'selected' : ''} ${isAlreadyCaptured ? 'already-captured' : ''}`}
                           onClick={() => !isAlreadyCaptured && setCaptureChoice(card)}
                           style={{
                             position: 'relative',

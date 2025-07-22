@@ -18,8 +18,6 @@ export default function Board({ board, onCellClick, elementTiles = [] }) {
     return tile?.type || null;
   };
 
-  console.log('🎯 BOARD RENDER', board);
-
   return (
     <div className="board-container">
       {board.map((row, rowIndex) => (

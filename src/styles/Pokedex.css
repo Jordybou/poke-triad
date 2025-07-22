@@ -1,5 +1,6 @@
 @import './variables.css';
 
+/* --- CONTAINER PRINCIPAL --- */
 .pokedex {
   background-color: var(--gba-bg);
   color: var(--gba-text);
@@ -8,84 +9,57 @@
   min-height: 100vh;
   text-align: center;
   position: relative;
+  image-rendering: pixelated;
 }
 
 .pokedex h1 {
-  font-size: 20px;
+  font-size: 22px;
   margin-bottom: 10px;
+  text-shadow: 1px 1px #000;
 }
 
 .pokedex p {
   font-size: 14px;
   margin-bottom: 20px;
+  color: var(--gba-text);
 }
 
-.card-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
-  gap: 12px;
-  justify-content: center;
-  margin-bottom: 30px;
-}
-
-.card {
-  width: 100px;
-  height: 120px;
-  background-color: #fff;
+.back-button {
+  position: absolute;
+  top: 1rem;
+  left: 1rem;
+  background-color: var(--gba-light);
   border: 2px solid var(--gba-border);
   border-radius: 8px;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-  font-size: 10px;
-  position: relative;
+  padding: 0.5rem 1rem;
+  font-size: 12px;
+  cursor: pointer;
+  font-family: var(--gba-font);
   box-shadow: var(--gba-shadow);
+  transition: transform 0.2s;
 }
 
-.card img {
-  width: 64px;
-  height: 64px;
-  object-fit: contain;
-  image-rendering: pixelated;
+.back-button:hover {
+  transform: scale(1.05);
 }
 
-.card p {
-  margin-top: 5px;
-  font-size: 11px;
-  font-weight: bold;
-}
-
-.card.locked {
-  background-color: #ddd;
-  border: 2px dashed #888;
-}
-
-.card.locked .lock {
-  width: 48px;
-  height: 48px;
-  background-image: url('../../public/images/card-back.png');
-  background-size: contain;
-  background-repeat: no-repeat;
-  filter: grayscale(100%);
-  opacity: 0.5;
-}
-
+/* --- BADGES --- */
 .badge-container {
   display: flex;
   justify-content: center;
   gap: 10px;
   flex-wrap: wrap;
   margin-top: 20px;
+  margin-bottom: 20px;
 }
 
-/* Réutilisation conforme avec badges.css */
 .badge-item {
   width: 32px;
   height: 32px;
   background-size: cover;
   background-position: center;
   border-radius: 6px;
+  image-rendering: pixelated;
 }
 
 .badge-unlocked {
@@ -97,28 +71,231 @@
   opacity: 0.4;
 }
 
-.back-button {
-  position: absolute;
-  top: 1rem;
-  left: 1rem;
-  background-color: #fff;
-  border: 2px solid #333;
-  border-radius: 8px;
-  padding: 0.5rem 1rem;
-  font-size: 12px;
-  cursor: pointer;
-  z-index: 1000;
+/* --- GRILLE DES CARTES --- */
+.pokedex-card-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+  gap: 12px;
+  justify-content: center;
+  margin-bottom: 30px;
 }
 
+.pokedex-entry {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.pokedex-card-name-bar {
+  width: 100px;
+  background-color: #fff;
+  border: 2px solid var(--gba-border);
+  border-radius: 6px;
+  padding: 4px 0;
+  font-size: 9px;
+  font-weight: bold;
+  color: var(--gba-text);
+  margin-bottom: 4px;
+  text-align: center;
+  box-shadow: var(--gba-shadow);
+  font-family: var(--gba-font);
+  text-transform: uppercase;
+}
+
+/* --- CARTE INDIVIDUELLE --- */
+.pokedex-card {
+  width: 100px;
+  height: 130px;
+  background-color: #fff;
+  border: 2px solid var(--gba-border);
+  border-radius: 8px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  font-size: 10px;
+  position: relative;
+  box-shadow: var(--gba-shadow);
+  overflow: hidden;
+  transition: transform 0.2s;
+  cursor: pointer;
+}
+
+.pokedex-card:hover {
+  transform: scale(1.03);
+}
+
+.pokedex-card.locked {
+  background-image: url('/public/images/card-back.png');
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  border: 2px dashed #888;
+}
+
+/* --- IMAGE DANS CARTE --- */
+.poke-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  image-rendering: pixelated;
+  border-radius: 6px;
+}
+
+/* --- ID EN BAS DE LA CARTE --- */
 .poke-id {
+  position: absolute;
+  bottom: 2px;
+  left: 50%;
+  transform: translateX(-50%);
   font-size: 10px;
   font-weight: bold;
   color: var(--gba-accent);
-  margin-bottom: 2px;
+  background-color: rgba(255,255,255,0.7);
+  padding: 1px 4px;
+  border-radius: 4px;
+  font-family: var(--gba-font);
 }
 
-.poke-name {
-  font-size: 12px;
-  font-weight: bold;
+/* --- FENÊTRE DE ZOOM --- */
+.zoom-overlay {
+  position: fixed;
+  top: 0; left: 0;
+  width: 100vw; height: 100vh;
+  background: rgba(0, 0, 0, 0.75);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 9999;
+  font-family: var(--gba-font);
+}
+
+.zoom-card {
+  background-color: #fff;
   color: var(--gba-text);
+  border: 4px solid var(--gba-border);
+  border-radius: 12px;
+  padding: 20px;
+  width: 240px;
+  text-align: center;
+  position: relative;
+  box-shadow: var(--gba-shadow);
+}
+
+.zoom-image {
+  width: 128px;
+  height: 128px;
+  object-fit: contain;
+  image-rendering: pixelated;
+  margin: 10px auto;
+}
+
+.zoom-name {
+  font-size: 14px;
+  margin-bottom: 6px;
+  text-transform: uppercase;
+  font-weight: bold;
+}
+
+/* --- BOUTON FERMER --- */
+.zoom-close {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  background-color: var(--gba-light);
+  border: 2px solid #444;
+  border-radius: 6px;
+  padding: 2px 8px;
+  font-size: 12px;
+  cursor: pointer;
+  font-family: var(--gba-font);
+  box-shadow: var(--gba-shadow);
+  z-index: 1;
+}
+
+.zoom-close:hover {
+  background-color: #e66060;
+  color: white;
+}
+
+/* --- NAVIGATION FLÈCHES --- */
+.zoom-nav {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  background: linear-gradient(to bottom, #f0f0f0, #ccc);
+  border: 2px solid #555;
+  border-radius: 10px;
+  font-size: 28px;
+  padding: 10px 16px;
+  cursor: pointer;
+  box-shadow: inset -2px -2px 0 #fff, inset 2px 2px 0 #888, var(--gba-shadow);
+  z-index: 10000;
+  transition: transform 0.15s;
+}
+
+.zoom-nav:hover {
+  transform: translateY(-50%) scale(1.1);
+  background: linear-gradient(to bottom, #fff, #bbb);
+}
+
+.zoom-nav.left {
+  left: calc(50% - 210px);
+}
+
+.zoom-nav.right {
+  right: calc(50% - 210px);
+}
+
+/* --- STATS DE LA CARTE ZOOMÉE --- */
+.zoom-values-grid {
+  display: grid;
+  grid-template-areas:
+    "top top"
+    "left right"
+    "bottom bottom";
+  gap: 8px 30px;
+  justify-content: center;
+  align-items: center;
+  margin-top: 10px;
+  font-family: var(--gba-font);
+  font-weight: bold;
+  font-size: 18px;
+}
+
+.value-top {
+  grid-area: top;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 6px;
+}
+
+.value-bottom {
+  grid-area: bottom;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 6px;
+}
+
+.value-left {
+  grid-area: left;
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 6px;
+}
+
+.value-right {
+  grid-area: right;
+  display: flex;
+  justify-content: flex-start;
+  align-items: center;
+  gap: 6px;
+}
+
+.stat-arrow {
+  font-size: 22px;
+  font-weight: bold;
+  font-family: monospace;
 }

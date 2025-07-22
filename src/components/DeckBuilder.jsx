@@ -3,25 +3,43 @@ import { useDispatch, useSelector } from "react-redux";
 import { setPlayerDeck, selectPlayerDeck } from "../redux/slices/playerDeckSlice";
 import { fetchFrenchName, getTypeEmoji } from "../utils/translate";
 import "../styles/DeckBuilder.css";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
+
+// 🔁 Utilitaire global pour normaliser les idDex (ex: "25-waz" -> 25)
+const normalizeIdDex = (val) => Number(String(val).replace(/\D/g, ''));
 
 const DeckBuilder = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const captured = useSelector((state) => state.pokedex.captured);
   const currentDeck = useSelector(selectPlayerDeck);
+  const location = useLocation();
 
   const [selected, setSelected] = useState([]);
   const [translatedNames, setTranslatedNames] = useState({});
 
   useEffect(() => {
-  // On réinitialise la sélection à partir du deck actuel dès que la page se charge ou que currentDeck change
-  if (currentDeck.length === 5) {
-    setSelected([...currentDeck]); // 🔁 crée une copie pour déclencher le rendu
-  } else {
-    setSelected([]); // si le deck est invalide ou incomplet
-  }
-}, [currentDeck]);
+    if (location.pathname === '/decks' && currentDeck.length > 0) {
+      const currentDeckIds = currentDeck.map(c =>
+        typeof c === 'object' && c.idDex !== undefined ? normalizeIdDex(c.idDex) : normalizeIdDex(c)
+      );
+
+      const rebuilt = currentDeck
+        .filter(cd => typeof cd === 'object' && cd.idDex !== undefined)
+        .filter(cd =>
+          captured.some(c => normalizeIdDex(c.idDex) === normalizeIdDex(cd.idDex))
+        );
+
+      if (rebuilt.length < currentDeck.length) {
+        console.warn("⚠️ Certaines cartes du deck ne sont plus capturées !");
+      }
+
+      setSelected(rebuilt);
+
+      console.log("▶️ currentDeck ids:", currentDeckIds);
+      console.log("▶️ rebuilt selected:", rebuilt.map(c => ({ id: c.id, name: c.name })));
+    }
+  }, [location, currentDeck, captured]);
 
   useEffect(() => {
     const loadTranslations = async () => {
@@ -45,9 +63,14 @@ const DeckBuilder = () => {
 
   const toggleSelect = useCallback((card) => {
     setSelected((prevSelected) => {
-      const isSelected = prevSelected.some((c) => c.id === card.id);
+      const isSelected = prevSelected.some((c) =>
+        normalizeIdDex(c.idDex) === normalizeIdDex(card.idDex)
+      );
+
       if (isSelected) {
-        return prevSelected.filter((c) => c.id !== card.id);
+        return prevSelected.filter((c) =>
+          normalizeIdDex(c.idDex) !== normalizeIdDex(card.idDex)
+        );
       } else if (prevSelected.length < 5) {
         return [...prevSelected, card];
       }
@@ -74,13 +97,14 @@ const DeckBuilder = () => {
 
       <div className="card-grid">
         {captured.map((card) => {
-          const isSelected = selected.some((c) => c.id === card.id);
+          const selectedIdDexes = selected.map(c => normalizeIdDex(c.idDex));
+          const isSelected = selectedIdDexes.includes(normalizeIdDex(card.idDex));
           const translatedName = translatedNames[card.name] || card.name;
 
           return (
             <div
               key={card.id}
-              className={`card-wrapper ${isSelected ? "selected" : ""}`}
+              className={`card-wrapper deck-card ${isSelected ? "selected" : ""}`}
               onClick={() => toggleSelect(card)}
             >
               <p className="card-name">{translatedName}</p>
@@ -99,9 +123,21 @@ const DeckBuilder = () => {
         })}
       </div>
 
-      <button onClick={handleValidateDeck} className="validate-btn">
-        Valider le deck
-      </button>
+      <div className="button-group">
+        <button onClick={handleValidateDeck} className="validate-btn">
+          Valider le deck
+        </button>
+
+        <button
+          onClick={() => {
+            localStorage.removeItem('currentDeck');
+            window.location.reload();
+          }}
+          className="validate-btn"
+        >
+          Réinitialiser le deck
+        </button>
+      </div>
     </div>
   );
 };

@@ -152,21 +152,28 @@
   box-shadow: 1px 1px 0px #333;
 }
 
-.card-wrapper {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  width: 110px;
+.deck-card .card {
+  transition: all 0.2s ease;
 }
 
-.card-wrapper.selected .card {
+.deck-card.selected .card {
   border-color: #ffcb05;
   background-color: #fff176;
   transform: scale(1.05);
   box-shadow: 0 0 0 3px #3b4cca inset;
+  outline: 3px solid red !important;
 }
 
-.card-wrapper .card-name {
+/* 🛠️ Ajout important : on limite la hauteur du wrapper */
+.deck-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 110px;
+  height: fit-content;
+}
+
+.deck-card .card-name {
   font-size: 0.75rem;
   font-weight: bold;
   margin-bottom: 0.2rem;
@@ -175,5 +182,13 @@
 }
 
 .card-grid .card {
-  margin-top: 0; /* Important: empêche de casser l’alignement après modification */
+  margin-top: 0;
+  /* Important: empêche de casser l’alignement après modification */
+}
+
+.button-group {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+  margin-top: 10px;
 }

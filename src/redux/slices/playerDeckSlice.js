@@ -14,7 +14,9 @@ const playerDeckSlice = createSlice({
       }
     },
     removeCardFromPlayerDeck(state, action) {
-      state.deck = state.deck.filter(card => card.id !== action.payload);
+      console.log('Avant suppression', state.deck.map(c => c.idDex));
+      state.deck = state.deck.filter(card => card.idDex !== action.payload);
+      console.log('Après suppression', state.deck.map(c => c.idDex));
     },
     addCardToPlayerDeck(state, action) {
       if (state.deck.length < 5) {
