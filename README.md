@@ -93,12 +93,11 @@ npm start
 
 ## 📦 À venir
 
-🌍 Débloquer la 2ᵉ génération de Pokémon après complétion de la 1ʳᵉ
+🌍 Débloquer la 2eme génération de Pokémon après complétion de la 1ere
 📱 Responsive design pour mobile
 🎵 Ajout d’une ambiance sonore GBA
 🧠 IA plus intelligente (stratégie de jeu améliorée pour la règle OPEN)
-💾 Système de sauvegarde/export de decks
-🗃️ Export/sauvegarde locale de la progression
+💾 Rajout d'un backend pour sauvegarder la progression/decks
 🃏 Règle Chaos : perte de carte à la défaite
 
 ## ✨ Auteur

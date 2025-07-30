@@ -54,7 +54,7 @@ const ruleData = {
   Chaos: {
     label: 'Chaos',
     icon: '🎲',
-    description: "La carte jouée est choisie aléatoirement dans votre main.",
+    description: "Perte d'une carte aléatoire en cas de défaite.",
   },
 };
 
@@ -84,6 +84,26 @@ const Rules = () => {
     <div className="rules-container">
       <button className="back-button" onClick={() => navigate('/')}>← Retour</button>
       <h2>Règles débloquées</h2>
+
+      {/* Bouton de déblocage dev */}
+      <button
+        onClick={() => thresholds.forEach(({ rule }) => dispatch(unlockRule(rule)))}
+        style={{
+          position: 'absolute',
+          top: 10,
+          right: 10,
+          background: 'transparent',
+          color: '#555',
+          fontSize: '12px',
+          border: '1px dashed #888',
+          borderRadius: '4px',
+          padding: '4px',
+          cursor: 'pointer',
+          zIndex: 99,
+        }}
+      >
+        🔓 Débloquer tout (dev)
+      </button>
 
       <div className="rules-grid">
         {thresholds.map(({ rule, value, badge }) => {

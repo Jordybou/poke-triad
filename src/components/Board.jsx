@@ -1,8 +1,9 @@
 import Card from './Card';
 import '../styles/Board.css';
 import { getTypeEmoji } from '../utils/translate';
+import { weaknesses } from '../utils/constants';
 
-// Renvoie le chemin vers l'icône SVG d’un type donné
+// Icône du type
 const getTypeIcon = (type) => {
   if (!type) return null;
   const filename = type.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
@@ -24,15 +25,27 @@ export default function Board({ board, onCellClick, elementTiles = [] }) {
         <div className="board-row" key={rowIndex}>
           {row.map((cell, colIndex) => {
             const isElement = isElementTile(rowIndex, colIndex);
-            const type = getElementType(rowIndex, colIndex);
+            const elementType = getElementType(rowIndex, colIndex);
+
+            let bonusSide = null;
+            let malusSide = null;
+
+            if (cell && elementType && cell.type) {
+              if (cell.type === elementType) {
+                // Bonus : on prend tous les côtés (tu peux adapter si nécessaire)
+                bonusSide = 'all';
+              } else if (weaknesses[cell.type]?.includes(elementType)) {
+                malusSide = 'all';
+              }
+            }
 
             return (
               <div
-                className={`board-cell 
-                ${isElement ? 'element-cell' : ''} 
-                ${cell?.owner === 'player' ? 'owned-player' : ''} 
-                ${cell?.owner === 'enemy' ? 'owned-enemy' : ''}`}
                 key={colIndex}
+                className={`board-cell 
+                  ${isElement ? 'element-cell' : ''} 
+                  ${cell?.owner === 'player' ? 'owned-player' : ''} 
+                  ${cell?.owner === 'enemy' ? 'owned-enemy' : ''}`}
                 onClick={() => onCellClick(rowIndex, colIndex)}
               >
                 {cell ? (
@@ -42,23 +55,23 @@ export default function Board({ board, onCellClick, elementTiles = [] }) {
                     inDeck={false}
                     faceDown={false}
                     zoomable={false}
-                    bonus={cell.bonus}
-                    malus={cell.malus}
-                    element={type}
+                    bonus={bonusSide}
+                    malus={malusSide}
+                    element={elementType}
                     flash={cell.flash}
                   />
                 ) : isElement ? (
                   <img
-                    src={getTypeIcon(type)}
-                    alt={type}
-                    title={type}
+                    src={getTypeIcon(elementType)}
+                    alt={elementType}
+                    title={elementType}
                     className="element-icon"
                     onError={(e) => {
                       e.target.onerror = null;
                       e.target.style.display = 'none';
                       const fallback = document.createElement('span');
-                      fallback.className = 'element-emoji-fallback';
-                      fallback.innerText = getTypeEmoji(type);
+                      fallback.className = 'board-fallback-emoji';
+                      fallback.innerText = getTypeEmoji(elementType);
                       e.target.parentNode.appendChild(fallback);
                     }}
                   />

@@ -130,6 +130,17 @@
   color: black;
   text-shadow: 1px 1px white;
   z-index: 2;
+  transition: color 0.3s ease;
+}
+
+.value.bonus {
+  color: lime;
+  font-weight: bold;
+}
+
+.value.malus {
+  color: crimson;
+  font-weight: bold;
 }
 
 .top { top: 4px; left: 50%; transform: translateX(-50%); }

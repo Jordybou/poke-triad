@@ -9,19 +9,16 @@ function Card({
   inDeck = false,
   faceDown = false,
   zoomable = false,
-  bonus = null,
-  malus = null,
   element = null,
   flash = false,
 }) {
   if (!card) return null;
 
   const borderColor = owner === 'player' ? 'blue-border' : 'red-border';
-  const bonusClass = bonus ? 'card-bonus' : '';
-  const malusClass = malus ? 'card-malus' : '';
   const flashClass = flash ? 'flash-effect' : '';
   const contextClass = inDeck ? 'in-deck' : 'in-board';
-  const cardClasses = `card ${contextClass} ${borderColor} ${selected ? 'selected' : ''} ${zoomable ? 'zoomable' : ''} ${bonusClass} ${malusClass} ${flashClass}`;
+
+  const cardClasses = `card ${contextClass} ${borderColor} ${selected ? 'selected' : ''} ${zoomable ? 'zoomable' : ''} ${flashClass}`;
 
   const getTypeIcon = (type) => {
     if (!type) return null;
@@ -29,32 +26,36 @@ function Card({
     return `/icons/types/${filename}.svg`;
   };
 
-  const renderValue = (value, side) => {
-    const isBonus = bonus === side;
-    const isMalus = malus === side;
-    const className = `value ${side} ${isBonus ? 'bonus' : ''} ${isMalus ? 'malus' : ''}`;
+  const renderValue = (side) => {
+    if (!card.values || !card.values[side]) return null;
+
+    const value = card.values[side];
+    const isBonus = card.modifiers === 'bonus';
+    const isMalus = card.modifiers === 'malus';
+
+    const className = `value ${side} ${isBonus ? 'bonus' : isMalus ? 'malus' : ''
+      }`;
+
     return <div className={className}>{value}</div>;
   };
 
   return (
     <div className="card-wrapper">
-      {/* Affiche le nom uniquement en deck et si la carte est visible */}
-      {(inDeck && !faceDown && !card.hidden) && (
+      {inDeck && !faceDown && !card.hidden && (
         <div className="card-name">{card.frenchName || card.name}</div>
       )}
 
       <div className={cardClasses} onClick={onClick}>
-        {/* Dos de carte si face cachée */}
         {(faceDown || card.hidden) ? (
           <div className="card-back-wrapper">
             <img src="/images/card-back.png" alt="Dos de carte" className="card-back-image" />
           </div>
         ) : (
           <>
-            {renderValue(card.top, 'top')}
-            {renderValue(card.left, 'left')}
-            {renderValue(card.right, 'right')}
-            {renderValue(card.bottom, 'bottom')}
+            {renderValue('top')}
+            {renderValue('left')}
+            {renderValue('right')}
+            {renderValue('bottom')}
 
             <div className="card-middle">
               <img
@@ -70,10 +71,10 @@ function Card({
                   className="card-element-icon"
                   onError={(e) => {
                     const emoji = getTypeEmoji(element || card.type);
-                    e.target.replaceWith(Object.assign(document.createElement('span'), {
-                      className: 'fallback-emoji',
-                      innerText: emoji,
-                    }));
+                    const span = document.createElement('span');
+                    span.className = 'fallback-emoji';
+                    span.innerText = emoji;
+                    e.target.replaceWith(span);
                   }}
                 />
               )}

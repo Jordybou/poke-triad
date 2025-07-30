@@ -10,10 +10,11 @@ import { capturePokemon, selectCaptured } from '../redux/slices/pokedexSlice';
 import { selectActiveRules } from '../redux/slices/rulesSlice';
 import Card from './Card';
 import '../styles/Game.css';
-import { applyCaptureRules, isGameOver } from '../utils/logic';
+import { applyCaptureRules, isGameOver, logCaptureEvent } from '../utils/logic';
 import Board from './Board';
 import pokeball from '../assets/pokeball.png';
 import { store } from '../redux/store';
+import { weaknesses } from '../utils/constants';
 
 function Game() {
   const dispatch = useDispatch();
@@ -78,20 +79,18 @@ function Game() {
       return;
     }
 
-    const allTypes = [...playerDeck, ...enemyDeck]
-      .map(card => card.type)
-      .filter((v, i, a) => a.indexOf(v) === i);
+    const allTypes = [...new Set([...playerDeck, ...enemyDeck].map(c => c.type))];
+    const nbTiles = Math.floor(Math.random() * 4) + 1;
+    const tileSet = new Set();
 
-    const count = Math.floor(Math.random() * 3) + 1;
-    const positions = new Set();
-    while (positions.size < count) {
+    while (tileSet.size < nbTiles) {
       const row = Math.floor(Math.random() * 3);
       const col = Math.floor(Math.random() * 3);
-      positions.add(`${row}-${col}`);
+      tileSet.add(`${row}-${col}`);
     }
 
-    const result = Array.from(positions).map(pos => {
-      const [row, col] = pos.split('-').map(Number);
+    const result = Array.from(tileSet).map(key => {
+      const [row, col] = key.split('-').map(Number);
       const type = allTypes[Math.floor(Math.random() * allTypes.length)];
       return { row, col, type };
     });
@@ -99,43 +98,50 @@ function Game() {
     setElementTiles(result);
   }, [activeRules, playerDeck, enemyDeck]);
 
-  const handleCardClick = (card, index) => {
-    if (turn !== 'player') return;
-
-    if (selectedCard?.id === card.id) {
-      setSelectedCard(null);
-    } else {
-      setSelectedCard({ ...card, index });
-    }
-  };
-
-  useEffect(() => {
-    const totalCards = board.flat().filter(Boolean).length;
-    if (totalCards === 0 || !gameInitialized) return;
-
-    if (!showEndModal && isGameOver(board)) {
-      dispatch(endGame());
-      resolveEndGame(board);
-    }
-  }, [board, dispatch, showEndModal]);
-
   const handleSlotClick = (row, col) => {
     if (!selectedCard || board[row][col]) return;
 
-    const cardToPlace = {
-      ...selectedCard,
-      owner: 'player',
-      values: {
-        top: selectedCard.top,
-        right: selectedCard.right,
-        bottom: selectedCard.bottom,
-        left: selectedCard.left,
-      },
+    const tile = elementTiles.find(t => t.row === row && t.col === col);
+    const tileType = tile?.type;
+
+    let modifiers = null;
+
+    // On part d’une copie isolée des valeurs
+    let baseValues = {
+      top: selectedCard.top,
+      right: selectedCard.right,
+      bottom: selectedCard.bottom,
+      left: selectedCard.left,
     };
 
+    let adjustedValues = { ...baseValues };
+
+    if (tileType && activeRules.includes('Élémentaire')) {
+      if (selectedCard.type === tileType) {
+        modifiers = 'bonus';
+        adjustedValues = Object.fromEntries(
+          Object.entries(baseValues).map(([k, v]) => [k, v + 1])
+        );
+      } else if (weaknesses[selectedCard.type]?.includes(tileType)) {
+        modifiers = 'malus';
+        adjustedValues = Object.fromEntries(
+          Object.entries(baseValues).map(([k, v]) => [k, v - 1])
+        );
+      }
+    }
+
+    // Copie complète, sans altérer selectedCard ni le deck
+    const cardToPlace = JSON.parse(JSON.stringify({
+      ...selectedCard,
+      owner: 'player',
+      values: adjustedValues,
+      modifiers,
+    }));
+
     dispatch(placeCard({ row, col, card: cardToPlace }));
-    console.log('Retirer la carte avec idDex :', selectedCard.idDex);
     dispatch(removeCardFromPlayerDeck(selectedCard.idDex));
+
+    const elementMap = Object.fromEntries(elementTiles.map(t => [`${t.row}-${t.col}`, t.type]));
 
     const updated = applyCaptureRules(
       board,
@@ -143,19 +149,16 @@ function Game() {
       col,
       cardToPlace,
       activeRules,
-      elementTiles.reduce((acc, { row, col, type }) => {
-        acc[`${row}-${col}`] = type;
-        return acc;
-      }, {})
+      elementMap
     );
 
+    logCaptureEvent(row, col, cardToPlace, board, updated);
     dispatch(setBoard(updated));
 
     setTimeout(() => {
-      const noFlash = updated.map(row =>
-        row.map(cell => (cell ? { ...cell, flash: false } : null))
-      );
-      dispatch(setBoard(noFlash));
+      dispatch(setBoard(
+        updated.map(row => row.map(cell => cell ? { ...cell, flash: false } : null))
+      ));
     }, 500);
 
     setSelectedCard(null);
@@ -170,9 +173,10 @@ function Game() {
       dispatch(switchTurn());
       setTimeout(() => {
         playEnemyTurn();
-      }, 300); // On laisse le temps à Redux de switcher le tour
-    }, 500); // délai entre le tour du joueur et celui de l’IA
+      }, 300);
+    }, 500);
   };
+
 
   const resolveEndGame = (finalBoard) => {
     const playerCount = finalBoard.flat().filter(c => c?.owner === 'player').length;
@@ -239,7 +243,7 @@ function Game() {
   };
 
   const playEnemyTurn = () => {
-    const updated = store.getState().board.grid; // Récupère l’état actuel du plateau
+    const updated = store.getState().board.grid; // Récupère la copie de l’état avant que l'IA ne joue
     if (!Array.isArray(updated) || !Array.isArray(updated[0])) return;
 
     const coords = [];
@@ -297,6 +301,15 @@ function Game() {
     dispatch(switchTurn());
   };
 
+  const handlePlayerMove = (card, index) => {
+    if (turn !== 'player') return; // On vérifie que c'est bien le tour du joueur
+    if (selectedCard && selectedCard.id === card.id) {
+      setSelectedCard(null); // On désélectionne si on clique à nouveau
+    } else {
+      setSelectedCard(card); // On sélectionne la carte
+    }
+  };
+
   return (
     <div className="game-container">
       <div className="game-header">
@@ -319,7 +332,7 @@ function Game() {
               <Card
                 card={card}
                 source="player"
-                onClick={() => handleCardClick(card, index)}
+                onClick={() => handlePlayerMove(card, index)}
                 selected={selectedCard?.id === card.id}
               />
             </div>
