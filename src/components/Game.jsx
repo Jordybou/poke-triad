@@ -428,7 +428,6 @@ function Game() {
                           <Card
                             card={card}
                             owner="enemy"
-                            className="no-events"
                             inDeck={true}
                             selected={isSelected}
                           />
