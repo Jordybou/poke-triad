@@ -19,6 +19,7 @@ function App() {
   const captured = useSelector(state => state.pokedex.captured);
   const playerDeck = useSelector(selectPlayerDeck);
 
+  //Initialisation du Pokédex et du deck joueur au premier chargement de l’app
   useEffect(() => {
     const init = async () => {
       // Charger tous les Pokémon

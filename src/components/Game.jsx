@@ -28,13 +28,21 @@ function Game() {
   const activeRules = useSelector(selectActiveRules);
   const captured = useSelector(selectCaptured);
 
+  //Carte séléctionnée par le joueur
   const [selectedCard, setSelectedCard] = useState(null);
+  //Affichage modal de fin de partie
   const [showEndModal, setShowEndModal] = useState(false);
+  //Stocke le vainqueur
   const [winner, setWinner] = useState(null);
+  //Pokémon choisit en cas de victoire
   const [captureChoice, setCaptureChoice] = useState(null);
+  //Booléen pour validation au Pokédex du pokémon capturé
   const [captureConfirmed, setCaptureConfirmed] = useState(false);
+  //Cases du plateau contenant un élément (règle élémentaire)
   const [elementTiles, setElementTiles] = useState([]);
+  //Deck ennemi, sauvegarde du deck initial pour modal victoire
   const [originalEnemyDeck, setOriginalEnemyDeck] = useState([]);
+  //Indique si la partie a été initialisée
   const [gameInitialized, setGameInitialized] = useState(false);
 
   const playerScore = flatBoard.filter(card => card?.owner === 'player').length;
@@ -59,9 +67,11 @@ function Game() {
       }
 
       const deck = await generateDeck();
-      dispatch(setEnemyDeck(deck));
-      setOriginalEnemyDeck(deck);
-      setGameInitialized(true);
+      if (!gameInitialized) {
+        dispatch(setEnemyDeck(deck));
+        setOriginalEnemyDeck(deck);
+        setGameInitialized(true);
+      }
     }
 
     initializeGame();
@@ -106,7 +116,7 @@ function Game() {
 
     let modifiers = null;
 
-    // On part d’une copie isolée des valeurs
+    // Copie isolée des valeurs
     let baseValues = {
       top: selectedCard.top,
       right: selectedCard.right,
@@ -190,7 +200,7 @@ function Game() {
 
     const isAlreadyCaptured = captured.some(card => card.name === captureChoice.name);
 
-    // On capture uniquement si ce n'est pas déjà dans le Pokédex
+    // Capture uniquement si ce n'est pas déjà dans le Pokédex
     if (!isAlreadyCaptured) {
       dispatch(capturePokemon(captureChoice));
     }
@@ -206,7 +216,7 @@ function Game() {
         : currentDeck;
       localStorage.setItem('currentDeck', JSON.stringify(updatedDeck));
 
-      // ✅ mise à jour Redux en plus du localStorage
+      // Mise à jour Redux en plus du localStorage
       dispatch(setPlayerDeck(updatedDeck));
     }
 
@@ -334,6 +344,7 @@ function Game() {
                 source="player"
                 onClick={() => handlePlayerMove(card, index)}
                 selected={selectedCard?.id === card.id}
+                className={selectedCard?.id === card.id ? 'selectable' : ''}
               />
             </div>
           ))}
@@ -394,28 +405,34 @@ function Game() {
                   </>
                 );
               }
-
+              console.log("Carte choisie pour capture :", captureChoice);
               return (
                 <>
                   <h2>Victoire ! Choisissez un Pokémon à capturer :</h2>
                   <div className="capture-choices">
                     {originalEnemyDeck.map((card, index) => {
                       const isAlreadyCaptured = captured.some(c => String(c.idDex) === String(card.idDex));
+                      const isSelected = captureChoice?.idDex === card.idDex;
 
                       return (
                         <div
                           key={index}
-                          className={`card-wrapper ${captureChoice?.idDex === card.idDex ? 'selected' : ''} ${isAlreadyCaptured ? 'already-captured' : ''}`}
-                          onClick={() => !isAlreadyCaptured && setCaptureChoice(card)}
-                          style={{
-                            position: 'relative',
-                            opacity: isAlreadyCaptured ? 0.5 : 1,
-                            filter: isAlreadyCaptured ? 'grayscale(80%)' : 'none',
-                            pointerEvents: isAlreadyCaptured ? 'none' : 'auto'
+                          className={`card-wrapper selectable ${captureChoice?.idDex === card.idDex ? 'selected' : ''} ${isAlreadyCaptured ? 'already-captured' : ''}`}
+                          onClick={() => {
+                            if (!isAlreadyCaptured) {
+                              console.log('Carte cliquée :', card);
+                              setCaptureChoice(card);
+                            }
                           }}
                         >
-                          <p className="card-name">{card.frenchName || card.name}</p>
-                          <Card card={card} source="enemy" />
+                          <Card
+                            card={card}
+                            owner="enemy"
+                            className="no-events"
+                            inDeck={true}
+                            selected={isSelected}
+                          />
+
                           {isAlreadyCaptured && (
                             <img
                               src={pokeball}
@@ -435,7 +452,10 @@ function Game() {
                       );
                     })}
                   </div>
-                  <button onClick={confirmCapture} disabled={!captureChoice}>Capturer</button>
+
+                  <button onClick={confirmCapture} disabled={!captureChoice}>
+                    Capturer
+                  </button>
                 </>
               );
             })()}

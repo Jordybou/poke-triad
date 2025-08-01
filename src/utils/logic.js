@@ -97,7 +97,7 @@ function applyCombo(board, comboQueue, newBoard) {
   }
 }
 
-/*function applyElemental(card, elementMap) {
+function applyElemental(card, elementMap) {
   const key = `${card.row}-${card.col}`;
   const tileType = elementMap[key];
   if (!tileType) return { card, mod: 0 };
@@ -115,7 +115,7 @@ function applyCombo(board, comboQueue, newBoard) {
     adjusted.values[side] = Math.max(1, adjusted.values[side] + mod);
   }
   return { card: adjusted, mod };
-}*/
+}
 
 function applyCaptureRules(board, row, col, placedCard, activeRules, positionElements = {}) {
   const rulesSet = new Set(activeRules.map(r => r.trim().toLowerCase()));
@@ -139,10 +139,10 @@ function applyCaptureRules(board, row, col, placedCard, activeRules, positionEle
     row,
     col
   };
-  /*if (isElemental) {
+  if (isElemental) {
     const result = applyElemental(card, positionElements);
     card = result.card;
-  }*/
+  }
 
   newBoard[row][col] = card;
   applyClassicCapture(board, row, col, card, newBoard);
