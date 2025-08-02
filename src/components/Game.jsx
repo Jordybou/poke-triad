@@ -10,11 +10,12 @@ import { capturePokemon, selectCaptured } from '../redux/slices/pokedexSlice';
 import { selectActiveRules } from '../redux/slices/rulesSlice';
 import Card from './Card';
 import '../styles/Game.css';
-import { applyCaptureRules, isGameOver, logCaptureEvent } from '../utils/logic';
+import { applyCaptureRules, isGameOver, logCaptureEvent, applyElemental } from '../utils/logic';
 import Board from './Board';
 import pokeball from '../assets/pokeball.png';
 import { store } from '../redux/store';
-import { weaknesses } from '../utils/constants';
+import { getTypeEmoji } from '../utils/translate';
+import { generateElementTiles } from '../utils/generate';
 
 function Game() {
   const dispatch = useDispatch();
@@ -47,6 +48,16 @@ function Game() {
 
   const playerScore = flatBoard.filter(card => card?.owner === 'player').length;
   const enemyScore = flatBoard.filter(card => card?.owner === 'enemy').length;
+
+  const availableTypes = Object.keys(getTypeEmoji('dummy').constructor === String ? {} : getTypeEmoji)
+    .filter(type => typeof type === 'string' && type.length > 0);
+
+  useEffect(() => {
+    if (activeRules.includes('Élémentaire') && elementTiles.length === 0) {
+      const generated = generateElementTiles(1, 4, availableTypes); // ✅ Types et non emojis
+      setElementTiles(generated);
+    }
+  }, [activeRules, elementTiles]);
 
   useEffect(() => {
     async function initializeGame() {
@@ -108,52 +119,35 @@ function Game() {
     setElementTiles(result);
   }, [activeRules, playerDeck, enemyDeck]);
 
-  const handleSlotClick = (row, col) => {
+  // Fonction déclenchée lorsqu'une case vide du plateau est cliquée
+  // Gère le clic sur une case du plateau et toute la logique du tour joueur
+  const handleCardPlay = (row, col) => {
+    // Ne rien faire si aucune carte sélectionnée ou case déjà occupée
     if (!selectedCard || board[row][col]) return;
 
-    const tile = elementTiles.find(t => t.row === row && t.col === col);
-    const tileType = tile?.type;
+    // Création d'une map { '0-1': 'fire', ... } des cases élémentaires
+    const elementMap = Object.fromEntries(
+      elementTiles.map(({ row, col, type }) => [`${row}-${col}`, type])
+    );
 
-    let modifiers = null;
+    // Application de la règle Élémentaire (bonus/malus et valeurs modifiées)
+    const { card: adjustedCard, mod } = applyElemental(selectedCard, elementMap);
 
-    // Copie isolée des valeurs
-    let baseValues = {
-      top: selectedCard.top,
-      right: selectedCard.right,
-      bottom: selectedCard.bottom,
-      left: selectedCard.left,
+    // Construction finale de la carte à poser sur le plateau
+    const cardToPlace = {
+      ...adjustedCard,
+      owner: 'player',
+      row,
+      col,
+      modifiers: mod === 1 ? 'bonus' : mod === -1 ? 'malus' : null,
     };
 
-    let adjustedValues = { ...baseValues };
-
-    if (tileType && activeRules.includes('Élémentaire')) {
-      if (selectedCard.type === tileType) {
-        modifiers = 'bonus';
-        adjustedValues = Object.fromEntries(
-          Object.entries(baseValues).map(([k, v]) => [k, v + 1])
-        );
-      } else if (weaknesses[selectedCard.type]?.includes(tileType)) {
-        modifiers = 'malus';
-        adjustedValues = Object.fromEntries(
-          Object.entries(baseValues).map(([k, v]) => [k, v - 1])
-        );
-      }
-    }
-
-    // Copie complète, sans altérer selectedCard ni le deck
-    const cardToPlace = JSON.parse(JSON.stringify({
-      ...selectedCard,
-      owner: 'player',
-      values: adjustedValues,
-      modifiers,
-    }));
-
+    // Placement de la carte sur le plateau et retrait du deck
     dispatch(placeCard({ row, col, card: cardToPlace }));
     dispatch(removeCardFromPlayerDeck(selectedCard.idDex));
 
-    const elementMap = Object.fromEntries(elementTiles.map(t => [`${t.row}-${t.col}`, t.type]));
-
-    const updated = applyCaptureRules(
+    // Application des règles de capture (base + règles spéciales activées)
+    const updatedBoard = applyCaptureRules(
       board,
       row,
       col,
@@ -162,23 +156,30 @@ function Game() {
       elementMap
     );
 
-    logCaptureEvent(row, col, cardToPlace, board, updated);
-    dispatch(setBoard(updated));
+    // Ajout d'un effet visuel temporaire sur les cartes capturées
+    logCaptureEvent(row, col, cardToPlace, board, updatedBoard);
+    dispatch(setBoard(updatedBoard));
 
+    // Suppression de l'effet flash après un délai
     setTimeout(() => {
       dispatch(setBoard(
-        updated.map(row => row.map(cell => cell ? { ...cell, flash: false } : null))
+        updatedBoard.map(row =>
+          row.map(cell => cell ? { ...cell, flash: false } : null)
+        )
       ));
     }, 500);
 
+    // Réinitialisation de la carte sélectionnée
     setSelectedCard(null);
 
-    if (isGameOver(updated)) {
+    // Si toutes les cartes ont été jouées, on termine la partie
+    if (isGameOver(updatedBoard)) {
       dispatch(endGame());
-      resolveEndGame(updated);
+      resolveEndGame(updatedBoard);
       return;
     }
 
+    // Sinon, on passe au tour de l'adversaire après un petit délai
     setTimeout(() => {
       dispatch(switchTurn());
       setTimeout(() => {
@@ -350,7 +351,7 @@ function Game() {
           ))}
         </div>
 
-        <Board board={board} onCellClick={handleSlotClick} elementTiles={elementTiles} />
+        <Board board={board} onCellClick={handleCardPlay} elementTiles={elementTiles} />
 
         <div className="enemy-deck">
           {enemyDeck.map((card, index) => (

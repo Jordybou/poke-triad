@@ -40,7 +40,7 @@ async function fetchCardData(id) {
       frenchName: await fetchFrenchName(data.name),
       image: data.sprites.other['official-artwork'].front_default || '/images/missing.png',
       type: type,
-      emoji: getTypeEmoji[type] || '❓',
+      emoji: getTypeEmoji(type) || '❓',
       top: values.top,
       right: values.right,
       bottom: values.bottom,
@@ -53,24 +53,20 @@ async function fetchCardData(id) {
   }
 }
 
-// 🔥 Nouvelle fonction : Génère entre 1 et 3 cases élémentaires aléatoires
-export function generateRandomElementTiles(deck1, deck2) {
-  const allTypes = [...new Set([...deck1, ...deck2].map(card => card.type))];
-  const numberOfTiles = Math.floor(Math.random() * 3) + 1; // 1 à 3
-  const usedPositions = new Set();
-  const elementTiles = [];
+// Génère entre min et max cases du plateau avec un type élémentaire aléatoire
+export function generateElementTiles(min = 1, max = 4, typeList = []) {
+  const count = Math.floor(Math.random() * (max - min + 1)) + min;
+  const positions = [];
 
-  while (elementTiles.length < numberOfTiles) {
+  while (positions.length < count) {
     const row = Math.floor(Math.random() * 3);
     const col = Math.floor(Math.random() * 3);
     const key = `${row}-${col}`;
-    if (usedPositions.has(key)) continue;
-
-    usedPositions.add(key);
-    const type = allTypes[Math.floor(Math.random() * allTypes.length)];
-
-    elementTiles.push({ row, col, type });
+    if (!positions.includes(key)) {
+      const type = typeList[Math.floor(Math.random() * typeList.length)];
+      positions.push({ position: key, type });
+    }
   }
 
-  return elementTiles;
+  return positions;
 }

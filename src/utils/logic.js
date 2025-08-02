@@ -100,20 +100,23 @@ function applyCombo(board, comboQueue, newBoard) {
 function applyElemental(card, elementMap) {
   const key = `${card.row}-${card.col}`;
   const tileType = elementMap[key];
-  if (!tileType) return { card, mod: 0 };
+  if (!tileType || !card?.type) return { card, mod: 0 };
 
   let mod = 0;
-  if (card.type === tileType) mod = 1;
-  else if (weaknesses[card.type]?.includes(tileType)) mod = -1;
+  if (card.type === tileType) {
+    mod = 1;
+  } else if (
+    weaknesses[card.type] &&
+    weaknesses[card.type].includes(tileType)
+  ) {
+    mod = -1;
+  }
 
   const adjusted = JSON.parse(JSON.stringify(card)); // copie profonde
   adjusted.elementMod = mod;
   adjusted.values = Object.fromEntries(
     Object.entries(adjusted.values).map(([dir, val]) => [dir, Math.max(1, val + mod)])
   );
-  for (let side in adjusted.values) {
-    adjusted.values[side] = Math.max(1, adjusted.values[side] + mod);
-  }
   return { card: adjusted, mod };
 }
 
@@ -162,5 +165,5 @@ export {
   applyCaptureRules,
   isGameOver,
   logCaptureEvent,
-  weaknesses,
+  applyElemental,
 };
