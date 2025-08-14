@@ -231,3 +231,14 @@
 .card.no-events {
   pointer-events: none !important;
 }
+
+.card-wrapper.selectable.forced {
+  animation: pulse 1s infinite;
+  box-shadow: 0 0 8px 4px yellow;
+}
+
+@keyframes pulse {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.05); }
+  100% { transform: scale(1); }
+}

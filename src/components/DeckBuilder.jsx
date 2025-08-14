@@ -127,7 +127,12 @@ const DeckBuilder = () => {
         <button onClick={handleValidateDeck} className="validate-btn">
           Valider le deck
         </button>
-
+      </div>
+    </div>
+  );
+};
+//Bouton réinitialiser pour bug persistance du localStorage
+      /*
         <button
           onClick={() => {
             localStorage.removeItem('currentDeck');
@@ -137,9 +142,6 @@ const DeckBuilder = () => {
         >
           Réinitialiser le deck
         </button>
-      </div>
-    </div>
-  );
-};
+      */
 
 export default DeckBuilder;

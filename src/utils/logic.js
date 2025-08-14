@@ -161,9 +161,31 @@ function isGameOver(board) {
   return board.flat().filter(Boolean).length === 9;
 }
 
+/*function generatePlayerOrder(deck) {
+  // Crée une copie du deck pour ne pas modifier l'original
+  const deckCopy = [...deck];
+
+  // Mélange aléatoirement les cartes (algorithme de Fisher-Yates)
+  for (let i = deckCopy.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [deckCopy[i], deckCopy[j]] = [deckCopy[j], deckCopy[i]];
+  }
+
+  // Retourne un tableau contenant les identifiants (nom ou index) des cartes dans l'ordre tiré
+  return deckCopy.map((card) => card.id || card.name || card.frenchName);
+}*/
+
+function getForcedCardIndex(deck) {
+  if (!deck || deck.length === 0) return null;
+  const randomIndex = Math.floor(Math.random() * deck.length);
+  return randomIndex;
+}
+
 export {
   applyCaptureRules,
   isGameOver,
   logCaptureEvent,
   applyElemental,
+  /*generatePlayerOrder,*/
+  getForcedCardIndex
 };

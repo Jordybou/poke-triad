@@ -29,7 +29,7 @@ Un jeu de **cartes stratégique** en React mêlant les mécaniques de **Triple T
 
 ---
 
-### 🧠 Règles spéciales activables
+### 🧠 Règles spéciales activables (en cours, non utilisable pour le moment)
 - `Ordre` : les cartes doivent être jouées dans un ordre aléatoire
 - `Open` : deck ennemi visible
 (modification à venir concernant la difficulté de l'IA)
@@ -70,7 +70,7 @@ Un jeu de **cartes stratégique** en React mêlant les mécaniques de **Triple T
 ## 🗃️ Decks 
 - Affichage du deck par défaut avec un encadrement jaune
 - Permet de modifier son jeu en séléctionnant ou en désélectionnant une carte
-- Bouton Valider le deck et Réinitialiser le deck
+- Bouton Valider le deck
 
 ---
 
@@ -96,6 +96,7 @@ npm start
 🌍 Débloquer la 2eme génération de Pokémon après complétion de la 1ere
 📱 Responsive design pour mobile
 🎵 Ajout d’une ambiance sonore GBA
+🧠 Règles à revoir pour pouvoir les utilisées
 🧠 IA plus intelligente (stratégie de jeu améliorée pour la règle OPEN)
 💾 Rajout d'un backend pour sauvegarder la progression/decks
 🃏 Règle Chaos : perte de carte à la défaite

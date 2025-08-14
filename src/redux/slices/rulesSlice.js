@@ -26,7 +26,8 @@ const rulesSlice = createSlice({
       const rule = action.payload;
       if (!state.unlockedRules.includes(rule)) {
         state.unlockedRules.push(rule);
-        state.activeRules.push(rule); // activée par défaut
+        //state.activeRules.push(rule); // activée par défaut
+        state.activeRules.push(rule); // Désactivée temporairement
       }
     },
 

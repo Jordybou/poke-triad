@@ -25,6 +25,7 @@ function Card({
   element = null,
   flash = false,
   className = '',
+  forced = false
 }) {
   // Si aucune carte n’est fournie, ne rien afficher
   if (!card) return null;
@@ -32,6 +33,8 @@ function Card({
   const borderColor = owner === 'player' ? 'blue-border' : 'red-border';
   const flashClass = flash ? 'flash-effect' : '';
   const contextClass = inDeck ? 'in-deck' : 'in-board';
+
+  const clickable = forced || !inDeck || !owner || owner !== 'player';
 
   const cardClasses = `card ${contextClass} ${borderColor} ${selected ? 'selected' : ''} ${zoomable ? 'zoomable' : ''} ${flashClass} ${className}`;
 
@@ -56,15 +59,15 @@ function Card({
   };
   // Rendu visuel principal de la carte
   return (
-    <div className={`card-wrapper ${selected ? 'selectable' : ''}`}>
+    <div className={`card-wrapper ${selected ? 'selectable' : ''} ${forced ? 'forced' : ''}`}>
       {inDeck && !faceDown && !card.hidden && (
         <div className="card-name">{card.frenchName || card.name}</div>
       )}
 
       <div
         className={cardClasses}
-        onClick={onClick}
-        style={{ cursor: onClick ? 'pointer' : 'default' }}
+        onClick={clickable ? onClick : undefined}
+        style={{ cursor: clickable ? 'pointer' : 'not-allowed' }}
       >
         {(faceDown || card.hidden) ? (
           <div className="card-back-wrapper">

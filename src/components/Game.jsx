@@ -5,16 +5,15 @@ import { selectPlayerDeck, setPlayerDeck, removeCardFromPlayerDeck } from '../re
 import { setEnemyDeck, selectEnemyDeck, removeCardFromEnemyDeck } from '../redux/slices/enemyDeckSlice';
 import { generateDeck, generateDefaultDeck } from '../utils/generate';
 import { placeCard, selectBoard, resetBoard, setBoard } from '../redux/slices/boardSlice';
-import { endGame, resetGame, selectTurn, switchTurn } from '../redux/slices/gameSlice';
+import { endGame, resetGame, selectTurn, switchTurn, selectForcedCardIndex, setForcedCardIndex } from '../redux/slices/gameSlice';
 import { capturePokemon, selectCaptured } from '../redux/slices/pokedexSlice';
 import { selectActiveRules } from '../redux/slices/rulesSlice';
 import Card from './Card';
 import '../styles/Game.css';
-import { applyCaptureRules, isGameOver, logCaptureEvent, applyElemental } from '../utils/logic';
+import { applyCaptureRules, isGameOver, logCaptureEvent, applyElemental, getForcedCardIndex } from '../utils/logic';
 import Board from './Board';
 import pokeball from '../assets/pokeball.png';
 import { store } from '../redux/store';
-import { getTypeEmoji } from '../utils/translate';
 import { generateElementTiles } from '../utils/generate';
 
 function Game() {
@@ -28,6 +27,7 @@ function Game() {
   const turn = useSelector(selectTurn);
   const activeRules = useSelector(selectActiveRules);
   const captured = useSelector(selectCaptured);
+  const forcedCardIndex = useSelector(selectForcedCardIndex);
 
   //Carte séléctionnée par le joueur
   const [selectedCard, setSelectedCard] = useState(null);
@@ -48,16 +48,21 @@ function Game() {
 
   const playerScore = flatBoard.filter(card => card?.owner === 'player').length;
   const enemyScore = flatBoard.filter(card => card?.owner === 'enemy').length;
+  const availableTypes = [...new Set([...playerDeck, ...enemyDeck].map(card => card.type))];
 
-  const availableTypes = Object.keys(getTypeEmoji('dummy').constructor === String ? {} : getTypeEmoji)
-    .filter(type => typeof type === 'string' && type.length > 0);
-
+  //UseEffect pour règle Elémentaire
   useEffect(() => {
     if (activeRules.includes('Élémentaire') && elementTiles.length === 0) {
-      const generated = generateElementTiles(1, 4, availableTypes); // ✅ Types et non emojis
-      setElementTiles(generated);
+      setElementTiles(generateElementTiles(1, 4, availableTypes));
     }
   }, [activeRules, elementTiles]);
+
+  useEffect(() => {
+    if (activeRules.includes('Ordre') && turn === 'player' && playerDeck.length > 0) {
+      const newForced = getForcedCardIndex(playerDeck);
+      dispatch(setForcedCardIndex(newForced));
+    }
+  }, [turn, activeRules, playerDeck]);
 
   useEffect(() => {
     async function initializeGame() {
@@ -65,9 +70,7 @@ function Game() {
       dispatch(resetGame());
 
       const storedDeck = JSON.parse(localStorage.getItem('currentDeck'));
-      const isValidDeck = Array.isArray(storedDeck) &&
-        storedDeck.length === 5 &&
-        storedDeck.every(card => card && typeof card.idDex === 'number');
+      const isValidDeck = Array.isArray(storedDeck) && storedDeck.length === 5;
 
       if (isValidDeck) {
         dispatch(setPlayerDeck(storedDeck));
@@ -84,46 +87,28 @@ function Game() {
         setGameInitialized(true);
       }
     }
-
     initializeGame();
   }, [dispatch]);
 
   useEffect(() => {
-    if (Array.isArray(enemyDeck) && enemyDeck.length === 5 && Array.isArray(originalEnemyDeck) && originalEnemyDeck.length === 0) {
+    if (Array.isArray(enemyDeck) && enemyDeck.length === 5 && originalEnemyDeck.length === 0) {
       setOriginalEnemyDeck(enemyDeck);
     }
   }, [enemyDeck, originalEnemyDeck]);
 
-  useEffect(() => {
-    if (!activeRules.includes('Élémentaire') || playerDeck.length === 0 || enemyDeck.length === 0) {
-      setElementTiles([]);
-      return;
-    }
-
-    const allTypes = [...new Set([...playerDeck, ...enemyDeck].map(c => c.type))];
-    const nbTiles = Math.floor(Math.random() * 4) + 1;
-    const tileSet = new Set();
-
-    while (tileSet.size < nbTiles) {
-      const row = Math.floor(Math.random() * 3);
-      const col = Math.floor(Math.random() * 3);
-      tileSet.add(`${row}-${col}`);
-    }
-
-    const result = Array.from(tileSet).map(key => {
-      const [row, col] = key.split('-').map(Number);
-      const type = allTypes[Math.floor(Math.random() * allTypes.length)];
-      return { row, col, type };
-    });
-
-    setElementTiles(result);
-  }, [activeRules, playerDeck, enemyDeck]);
-
   // Fonction déclenchée lorsqu'une case vide du plateau est cliquée
   // Gère le clic sur une case du plateau et toute la logique du tour joueur
   const handleCardPlay = (row, col) => {
-    // Ne rien faire si aucune carte sélectionnée ou case déjà occupée
-    if (!selectedCard || board[row][col]) return;
+    const isOrdreActive = activeRules.includes("Ordre");
+    const cardToUse = isOrdreActive ? playerDeck[forcedCardIndex] : selectedCard;
+
+    if (!cardToUse || board[row][col]) return;
+
+    if (isOrdreActive) {
+      dispatch(setForcedCardIndex(null));
+    } else {
+      setSelectedCard(null);
+    }
 
     // Création d'une map { '0-1': 'fire', ... } des cases élémentaires
     const elementMap = Object.fromEntries(
@@ -131,7 +116,7 @@ function Game() {
     );
 
     // Application de la règle Élémentaire (bonus/malus et valeurs modifiées)
-    const { card: adjustedCard, mod } = applyElemental(selectedCard, elementMap);
+    const { card: adjustedCard, mod } = applyElemental(cardToUse, elementMap);
 
     // Construction finale de la carte à poser sur le plateau
     const cardToPlace = {
@@ -144,7 +129,7 @@ function Game() {
 
     // Placement de la carte sur le plateau et retrait du deck
     dispatch(placeCard({ row, col, card: cardToPlace }));
-    dispatch(removeCardFromPlayerDeck(selectedCard.idDex));
+    dispatch(removeCardFromPlayerDeck(cardToUse.idDex));
 
     // Application des règles de capture (base + règles spéciales activées)
     const updatedBoard = applyCaptureRules(
@@ -169,9 +154,6 @@ function Game() {
       ));
     }, 500);
 
-    // Réinitialisation de la carte sélectionnée
-    setSelectedCard(null);
-
     // Si toutes les cartes ont été jouées, on termine la partie
     if (isGameOver(updatedBoard)) {
       dispatch(endGame());
@@ -187,7 +169,6 @@ function Game() {
       }, 300);
     }, 500);
   };
-
 
   const resolveEndGame = (finalBoard) => {
     const playerCount = finalBoard.flat().filter(c => c?.owner === 'player').length;
@@ -265,10 +246,6 @@ function Game() {
     );
 
     const enemyDeckCurrent = store.getState().enemy.deck;
-    if (!Array.isArray(enemyDeckCurrent)) {
-      console.error('Le deck ennemi est invalide :', enemyDeckCurrent);
-      return;
-    }
     const aiCard = enemyDeckCurrent.find(c => !updated.flat().some(b => b?.id === c.id));
     if (!aiCard || coords.length === 0) return;
 
@@ -313,11 +290,11 @@ function Game() {
   };
 
   const handlePlayerMove = (card, index) => {
-    if (turn !== 'player') return; // On vérifie que c'est bien le tour du joueur
-    if (selectedCard && selectedCard.id === card.id) {
-      setSelectedCard(null); // On désélectionne si on clique à nouveau
+    if (turn !== 'player') return;
+    if (selectedCard?.id === card.id) {
+      setSelectedCard(null);
     } else {
-      setSelectedCard(card); // On sélectionne la carte
+      setSelectedCard(card);
     }
   };
 
@@ -339,13 +316,16 @@ function Game() {
         <div className="player-deck">
           {playerDeck.map((card, index) => (
             <div key={index} className="card-wrapper">
-              <p className="card-name">{card.frenchName || card.name}</p>
               <Card
                 card={card}
                 source="player"
                 onClick={() => handlePlayerMove(card, index)}
                 selected={selectedCard?.id === card.id}
                 className={selectedCard?.id === card.id ? 'selectable' : ''}
+                inDeck={true}
+                orderMode={activeRules.includes("Ordre")}
+                forced={false} //ligne temporaire
+                zoomable={false} //ligne temporaire
               />
             </div>
           ))}
@@ -356,9 +336,7 @@ function Game() {
         <div className="enemy-deck">
           {enemyDeck.map((card, index) => (
             <div key={index} className="card-wrapper">
-              {activeRules.includes('Open') && (
-                <p className="card-name">{card.frenchName || card.name}</p>
-              )}
+              {activeRules.includes('Open')}
               <Card
                 card={{ ...card, hidden: !activeRules.includes('Open') }}
                 source="enemy"
@@ -421,9 +399,12 @@ function Game() {
                           className={`card-wrapper selectable ${captureChoice?.idDex === card.idDex ? 'selected' : ''} ${isAlreadyCaptured ? 'already-captured' : ''}`}
                           onClick={() => {
                             if (!isAlreadyCaptured) {
-                              console.log('Carte cliquée :', card);
                               setCaptureChoice(card);
                             }
+                          }}
+                          style={{
+                            cursor: isAlreadyCaptured ? 'not-allowed' : 'pointer',
+                            opacity: isAlreadyCaptured ? 0.5 : 1,
                           }}
                         >
                           <Card
@@ -432,22 +413,6 @@ function Game() {
                             inDeck={true}
                             selected={isSelected}
                           />
-
-                          {isAlreadyCaptured && (
-                            <img
-                              src={pokeball}
-                              alt="Déjà capturé"
-                              style={{
-                                position: 'absolute',
-                                bottom: '6px',
-                                right: '6px',
-                                width: '22px',
-                                height: '22px',
-                                zIndex: 10,
-                                opacity: 0.95,
-                              }}
-                            />
-                          )}
                         </div>
                       );
                     })}

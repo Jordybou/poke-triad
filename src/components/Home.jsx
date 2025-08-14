@@ -11,7 +11,7 @@ export default function Home() {
         <button onClick={() => navigate('/game')}>▶️ Jouer</button>
         <button onClick={() => navigate('/decks')}>🃏 Decks</button>
         <button onClick={() => navigate('/pokedex')}>📘 Pokédex</button>
-        <button onClick={() => navigate('/rules')}>📜 Règles</button>
+        <button disabled style={{ opacity: 0.5, cursor: 'not-allowed' }}>📜 Règles (à venir)</button>
         <button onClick={() => navigate('/quit')}>❌ Quitter</button>
       </div>
     </div>
