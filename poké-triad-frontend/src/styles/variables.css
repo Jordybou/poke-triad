@@ -20,4 +20,16 @@
 
   --gba-overlay: rgba(0, 0, 0, 0.5);
   --gba-secondary: #7fbdff;
+
+  --gba-cream: #d9cbaf;
+  --gba-shadow: #6b5e49;
+}
+
+.appHeader {
+  background: var(--gba-cream);
+  border-bottom: 2px solid var(--gba-shadow);
+  padding: 8px 12px;
+  position: sticky;
+  top: 0;
+  z-index: 10;
 }

@@ -1,7 +1,7 @@
 import { useDispatch, useSelector } from 'react-redux';
 import { useState } from 'react';
 import { login, register, logout, selectUser } from '../redux/slices/authSlice';
-import { ProgressAPI } from '../api';
+import styles from '../styles/AuthWidget.module.css';
 
 export default function AuthWidget() {
   const user = useSelector(selectUser);
@@ -11,31 +11,48 @@ export default function AuthWidget() {
 
   if (user) {
     return (
-      <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-        <span>Connecté : {user.email}</span>
-        <button onClick={() => dispatch(logout())}>Logout</button>
+      <div className={styles.authBar}>
+        <span className={styles.badge}>
+          👤 {user.email}
+        </span>
+        <button className={styles.gbaButton} onClick={() => dispatch(logout())}>
+          Logout
+        </button>
       </div>
     );
   }
 
-  async function handleAuth(kind) {
-    // Au moment où l'utilisateur se connecte/s'inscrit, on peut "monter" la progression locale vers le serveur
+  async function handle(kind) {
+    if (!email || !password) return;
     if (kind === 'login') await dispatch(login({ email, password }));
     if (kind === 'register') await dispatch(register({ email, password }));
-
-    // Après succès : si une progression locale existe, l'envoyer au serveur
-    const local = JSON.parse(localStorage.getItem('triad_progress') || 'null');
-    if (local) {
-      try { await ProgressAPI.put(local); } catch {}
-    }
+    setPassword(''); // petite hygiène
   }
 
   return (
-    <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-      <input placeholder="email" value={email} onChange={(e) => setEmail(e.target.value)} />
-      <input placeholder="mot de passe" type="password" value={password} onChange={(e) => setPassword(e.target.value)} />
-      <button onClick={() => handleAuth('login')}>Login</button>
-      <button onClick={() => handleAuth('register')}>Register</button>
+    <div className={styles.authBar}>
+      <input
+        className={styles.input}
+        placeholder="email"
+        value={email}
+        onChange={(e) => setEmail(e.target.value)}
+        type="email"
+        autoComplete="email"
+      />
+      <input
+        className={styles.input}
+        placeholder="mot de passe"
+        value={password}
+        onChange={(e) => setPassword(e.target.value)}
+        type="password"
+        autoComplete="current-password"
+      />
+      <button className={styles.gbaButton} onClick={() => handle('login')}>
+        Connexion
+      </button>
+      <button className={styles.gbaButtonAlt} onClick={() => handle('register')}>
+        Enregistrer
+      </button>
     </div>
   );
 }

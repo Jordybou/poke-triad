@@ -1,6 +1,3 @@
-// API Express minimaliste pour comptes + progression
-// Persistance en fichiers JSON via FileDB
-
 import express from 'express';
 import cors from 'cors';
 import cookieParser from 'cookie-parser';
