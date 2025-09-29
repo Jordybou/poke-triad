@@ -1,0 +1,243 @@
+{
+  "progressByUserId": {
+    "08b773ef-d262-464d-bd7a-11b6f04fee28": {
+      "capturedIds": [
+        25,
+        4,
+        7,
+        1,
+        59,
+        105,
+        95
+      ],
+      "badgeCount": 0,
+      "unlockedRules": [],
+      "activeRules": [],
+      "currentDeckIds": [
+        25,
+        4,
+        7,
+        59,
+        105
+      ],
+      "currentDeckSnapshot": [
+        {
+          "id": "25",
+          "idDex": 25,
+          "name": "pikachu",
+          "frenchName": "Pikachu",
+          "image": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/25.png",
+          "type": "electric",
+          "emoji": "⚡",
+          "top": 3,
+          "right": 2,
+          "bottom": 4,
+          "left": 6,
+          "values": {
+            "top": 3,
+            "right": 2,
+            "bottom": 4,
+            "left": 6
+          }
+        },
+        {
+          "id": "4",
+          "idDex": 4,
+          "name": "charmander",
+          "frenchName": "Salamèche",
+          "image": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/4.png",
+          "type": "fire",
+          "emoji": "🔥",
+          "top": 3,
+          "right": 3,
+          "bottom": 3,
+          "left": 4,
+          "values": {
+            "top": 3,
+            "right": 3,
+            "bottom": 3,
+            "left": 4
+          }
+        },
+        {
+          "id": "7",
+          "idDex": 7,
+          "name": "squirtle",
+          "frenchName": "Carapuce",
+          "image": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/7.png",
+          "type": "water",
+          "emoji": "💧",
+          "top": 4,
+          "right": 3,
+          "bottom": 3,
+          "left": 3,
+          "values": {
+            "top": 4,
+            "right": 3,
+            "bottom": 3,
+            "left": 3
+          }
+        },
+        {
+          "id": "59",
+          "idDex": 59,
+          "name": "arcanine",
+          "frenchName": "Arcanin",
+          "image": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/59.png",
+          "type": "fire",
+          "emoji": "🔥",
+          "top": 5,
+          "right": 6,
+          "bottom": 7,
+          "left": 6,
+          "values": {
+            "top": 5,
+            "right": 6,
+            "bottom": 7,
+            "left": 6
+          }
+        },
+        {
+          "id": "105",
+          "idDex": 105,
+          "name": "marowak",
+          "frenchName": "Ossatueur",
+          "image": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/105.png",
+          "type": "ground",
+          "emoji": "🌍",
+          "top": 7,
+          "right": 4,
+          "bottom": 5,
+          "left": 3,
+          "values": {
+            "top": 7,
+            "right": 4,
+            "bottom": 5,
+            "left": 3
+          }
+        }
+      ],
+      "lastSeenAt": "2025-08-27T16:19:19.224Z"
+    },
+    "99d61492-7b35-4ded-b25e-a4f18105ea55": {
+      "capturedIds": [
+        25,
+        4,
+        7,
+        1,
+        59,
+        105,
+        95,
+        143
+      ],
+      "badgeCount": 0,
+      "unlockedRules": [],
+      "activeRules": [],
+      "currentDeckIds": [
+        25,
+        4,
+        95,
+        105,
+        59
+      ],
+      "currentDeckSnapshot": [
+        {
+          "id": "25",
+          "idDex": 25,
+          "name": "pikachu",
+          "frenchName": "Pikachu",
+          "image": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/25.png",
+          "type": "electric",
+          "emoji": "⚡",
+          "top": 3,
+          "right": 2,
+          "bottom": 4,
+          "left": 6,
+          "values": {
+            "top": 3,
+            "right": 2,
+            "bottom": 4,
+            "left": 6
+          }
+        },
+        {
+          "id": "4",
+          "idDex": 4,
+          "name": "charmander",
+          "frenchName": "Salamèche",
+          "image": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/4.png",
+          "type": "fire",
+          "emoji": "🔥",
+          "top": 3,
+          "right": 3,
+          "bottom": 3,
+          "left": 4,
+          "values": {
+            "top": 3,
+            "right": 3,
+            "bottom": 3,
+            "left": 4
+          }
+        },
+        {
+          "id": "95",
+          "idDex": 95,
+          "name": "onix",
+          "frenchName": "Onix",
+          "image": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/95.png",
+          "type": "rock",
+          "emoji": "⛰️",
+          "top": 10,
+          "right": 2,
+          "bottom": 3,
+          "left": 5,
+          "values": {
+            "top": 10,
+            "right": 2,
+            "bottom": 3,
+            "left": 5
+          }
+        },
+        {
+          "id": "105",
+          "idDex": 105,
+          "name": "marowak",
+          "frenchName": "Ossatueur",
+          "image": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/105.png",
+          "type": "ground",
+          "emoji": "🌍",
+          "top": 7,
+          "right": 4,
+          "bottom": 5,
+          "left": 3,
+          "values": {
+            "top": 7,
+            "right": 4,
+            "bottom": 5,
+            "left": 3
+          }
+        },
+        {
+          "id": "59",
+          "idDex": 59,
+          "name": "arcanine",
+          "frenchName": "Arcanin",
+          "image": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/59.png",
+          "type": "fire",
+          "emoji": "🔥",
+          "top": 5,
+          "right": 6,
+          "bottom": 7,
+          "left": 6,
+          "values": {
+            "top": 5,
+            "right": 6,
+            "bottom": 7,
+            "left": 6
+          }
+        }
+      ],
+      "lastSeenAt": "2025-08-27T16:22:46.129Z"
+    }
+  }
+}

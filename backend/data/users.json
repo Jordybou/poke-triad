@@ -1,0 +1,28 @@
+{
+  "users": [
+    {
+      "id": "ea15d24b-9f18-4e6f-b9db-12a5b20c691d",
+      "email": "jordangerard95@hotmail.fr",
+      "passwordHash": "$2b$10$jBnVk7OW841DPs/nrJJmFOX2xMCUvDWz/wwNCUWqSR3cN3VQMpYk2",
+      "createdAt": "2025-08-14T13:48:25.292Z"
+    },
+    {
+      "id": "08b773ef-d262-464d-bd7a-11b6f04fee28",
+      "email": "bailly.barbara@hotmail.fr",
+      "passwordHash": "$2b$10$MJaOswjF5hZliwHw/8MHse.bBpPlSdV6ucMHYOapodwcmeDrijzYO",
+      "createdAt": "2025-08-27T16:17:13.483Z"
+    },
+    {
+      "id": "99d61492-7b35-4ded-b25e-a4f18105ea55",
+      "email": "barbarabailly2@gmail.com",
+      "passwordHash": "$2b$10$ZkAbbaFaPTIU1zRkQbYGde7YdJkLVuFKNh0mrd.1RIXN5tzr7LxEe",
+      "createdAt": "2025-08-27T16:21:37.667Z"
+    },
+    {
+      "id": "5a26ce6b-7b9f-437b-85d6-539e9b1d1f17",
+      "email": "jordan.g@hotmail.fr",
+      "passwordHash": "$2b$10$PHCr4Cp62o7sIMUF3.uk8ORxJCVgnQ7I0SvX1YIfmrr5zbDtyQM0a",
+      "createdAt": "2025-08-27T16:39:59.454Z"
+    }
+  ]
+}
