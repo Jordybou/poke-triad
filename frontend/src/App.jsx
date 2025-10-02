@@ -6,7 +6,6 @@ import Pokedex from './components/Pokedex';
 import Rules from './components/Rules';
 import Quit from './components/Quit';
 import './styles/variables.css';
-import packageJson from '../package.json';
 
 import { useDispatch, useSelector } from 'react-redux';
 import { useEffect } from 'react';
@@ -78,7 +77,7 @@ function App() {
         </Routes>
       </Router>
       <footer style={{ position: "fixed", bottom: 10, right: 10, fontSize: "12px", color: "#666" }}>
-        Version {packageJson.version}
+        Version {__APP_VERSION__}
       </footer>
     </div>
   );
