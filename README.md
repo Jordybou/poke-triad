@@ -1,195 +1,117 @@
-# 🎮 Poké-Triad
+# 🎴 Poké-Triad
 
-Un jeu de **cartes stratégique** en React mêlant les mécaniques de **Triple Triad** (Final Fantasy VIII) à l’univers de **Pokémon** (1ʳᵉ génération), avec un style visuel **rétro Game Boy Advance**.
+**Poké-Triad** est un jeu inspiré du **Triple Triad**, revisité dans l’univers Pokémon.  
+Le projet est développé en **JavaScript**, avec un **frontend Vite** et un **backend Node.js**.
 
----
-
-## 🚀 Fonctionnalités
-
-### 🧭 Navigation
-- Menu principal avec 5 onglets :
-  - `▶️ Jouer` : Lancer une partie contre l'IA
-  - `🃏 Decks` : Gérer son deck
-  - `📘 Pokédex` : Visualiser sa collection de cartes capturées ou non
-  - `📜 Règles` : Activer ou non les règles spéciales avec explications (en cours de réalisation)
-  - `❌ Quitter` : Fermer l’application
+L’objectif est de proposer un jeu de cartes stratégique jouable localement, avec une progression et une sauvegarde des données.
 
 ---
 
-### 🎴 Partie – Plateau 3x3
-- **Decks de 5 cartes** pour le joueur et l'ennemi
-- Chaque carte comprend :
-  - Nom + image officielle Pokémon
-  - Statistiques converties en **valeurs directionnelles** (haut, bas, gauche, droite)
-  - Un **type élémentaire** (feu, eau, etc.) avec emoji ou icône
-- **Tour par tour** (joueur / IA)
-- Cartes posées sur le plateau central avec animation
-- **Effets de bordures colorées**, zoom sur sélection
-- **Score en direct** (cartes possédées)
+## 🧩 Stack technique
+
+### Frontend
+- Vite
+- JavaScript
+- HTML / CSS
+
+### Backend
+- Node.js
+- Express
+- Nodemon (développement)
 
 ---
 
-### 🧠 Règles spéciales activables *(en cours)* 
-- `Ordre` : les cartes doivent être jouées dans un ordre aléatoire
-- `Open` : deck ennemi visible
-- `Élémentaire` : certaines cases ont un type qui donne :
-  - `+1` si correspondance
-  - `-1` si faiblesse
-  - Rien si aucune corresponce
-- `Mur` : les bords du plateau ont une valeur de 10
-- `Identique` : capture si deux valeurs adjacentes sont identiques
-- `Plus` : capture si deux sommes de valeurs sont égales
-- `Combo` : enchaînements de captures possibles
-- `Chaos` : le joueur perd une carte en cas de défaite (à venir)
+## 🗂 Architecture du projet
+
+poke-triad/
+├── frontend/ # Interface du jeu
+│ ├── index.html
+│ ├── main.js
+│ └── styles/
+│
+├── backend/ # Serveur Node.js
+│ ├── server.js
+│ ├── data/ # Données (utilisateurs, progression)
+│ └── .env.example # Variables d’environnement (exemple)
+│
+├── package.json # Scripts & dépendances globales
+├── package-lock.json
+├── .gitignore
+└── README.md
 
 ---
 
-### 🏁 Fin de partie
-- Fin automatique à 9 cartes jouées (Système de point à revoir pour faire davantage Final Fantasy Triple Triad -> 5-5 au début et -1/+1 si capture)
-- Affichage de :
-  - 🏆 Victoire
-  - 💀 Défaite
-  - 🤝 Égalité (Impossible en état actuel de la version)
-- En cas de victoire :
-  - Sélection d’une **carte adverse à capturer**
-  - Ajout au **Pokédex**
+## 🚀 Installation
+
+### Prérequis
+- Node.js **>= 18**
+- npm
+- Git
 
 ---
 
-## 📘 Pokédex
-- Affiche les **151 Pokémon de la 1ʳᵉ génération**
-- Cartes **capturées** affichées avec nom + image
-- Cartes **non capturées** cachées en face verso
-- Affiche la **progression** (ex. : `48/151`)
-- Déblocage progressif de **badges** (8) :
-  - Chaque badge débloque une **règle spéciale**
-  - Affichés avec état verrouillé / débloqué
+### Setup
 
----
+1️⃣ Cloner le projet
 
-## 🗃️ Decks
-- Affichage du deck par défaut avec un encadrement jaune
-- Sélection/désélection des cartes
-- Bouton “Valider le deck”
+git clone https://github.com/TON-PSEUDO/poke-triad.git
+cd poke-triad
 
----
-
-## 🔐 Authentification & Sauvegarde
-Le jeu inclut désormais un **système de compte** optionnel via un backend Node.js/Express.
-
-- **Sans compte** : progression stockée en **localStorage** (persiste au refresh, **non synchronisée entre appareils**).
-- **Avec compte** : (option non fonctionnel à 100%)
-  - Création de compte via formulaire (email + mot de passe).
-  - Connexion persistante via cookies sécurisés (JWT httpOnly).
-  - Sauvegarde automatique de la progression (Pokédex, deck, règles).
-  - Récupération automatique des données à chaque connexion.
-
----
-
-## 🛠️ Installation & Lancement
-
-### Option A — depuis la **racine** (monorepo)
-```bash
+2️⃣ Installer les dépendances
 npm install
-npm run dev          # lance frontend + backend
-```
 
-### Option B — par dossier
 
-#### 1) Backend
-```bash
-cd backend
-npm install
+Les dépendances frontend et backend sont installées depuis la racine.
+
+3️⃣ Configuration de l’environnement
+
+Dans le dossier backend/ :
+
+cp .env.example .env
+
+
+Puis adapter les variables si nécessaire.
+
+4️⃣ Lancer le projet en développement
 npm run dev
-```
 
-**Backend `.env` (dev)**
-```
-NODE_ENV=development
-PORT=4000
-CLIENT_ORIGIN=http://localhost:3000
-JWT_SECRET=ma-cle-tres-secrete-en-dev
-```
 
-#### 2) Frontend (CRA)
-```bash
-cd frontend
-npm install
-npm start
-```
+Frontend : http://localhost:5173
+ (par défaut)
 
-**Frontend `.env` (dev)**
-```
-VITE_API_URL=http://localhost:4000
-```
+Backend : http://localhost:3000
+ (selon configuration)
 
----
+🛠 Scripts disponibles
+npm run dev        # Lance frontend + backend
+npm run server     # Lance uniquement le backend
+npm run client     # Lance uniquement le frontend
 
-## 📖 Guide rapide : créer un compte & sauvegarder
+⚠️ Notes importantes
 
-1) **Lancer en local**
-   - Backend sur `http://localhost:4000`
-   - Frontend sur `http://localhost:3000`
+node_modules n’est jamais versionné
 
-2) **Créer un compte**
-   - Dans le widget “Compte” : **email** + **mot de passe** → **Register**  
-   - Vous êtes connecté automatiquement (cookie httpOnly posé par l’API).
+Le fichier .env ne doit pas être commité
 
-3) **Se connecter / se déconnecter**
-   - **Login** : identifiants → **Login**
-   - **Logout** : bouton **Logout**
+Les fichiers backend/data/*.json peuvent être remplacés par des versions .example.json si nécessaire
 
-4) **Sauvegarde de la progression**
-   - **Invité (non connecté)** : localStorage
-   - **Connecté** : côté serveur, déclenchée automatiquement :
-     - à l’écran de fin (défaite/égalité),
-     - après une **capture confirmée** (victoire),
-     - au **Rejouer** (filet de sécurité).
-   - Au démarrage, récupération via `GET /me`.
+🤝 Contribuer au projet
 
-5) **Endpoints principaux**
-   - `POST /auth/register` – créer un compte
-   - `POST /auth/login` – connexion
-   - `POST /auth/logout` – déconnexion
-   - `GET /me` – infos utilisateur + progression
-   - `GET /progress` / `PUT /progress` – lire/écrire la progression (connecté)
+Forker le dépôt
 
----
+Cloner le fork
 
-## 🧰 Scripts utiles
-- **Racine**
-  - `npm run dev` — lance tous les workspaces qui ont `dev`
-  - `npm run build` — build des workspaces
-- **Frontend**
-  - `npm start` / `npm run dev` — CRA
-  - `npm run build` — build CRA
-- **Backend**
-  - `npm run dev` — serveur dev
-  - `npm start` — serveur prod
+Créer une branche (feature/ma-feature)
 
----
+Installer les dépendances (npm install)
 
-## 📦 Technologies
-- React, React Router, Redux Toolkit, Axios
-- Node.js, Express
-- bcrypt, jsonwebtoken
-- PokéAPI
-- nanoid
-- CSS Modules
-- Fonts : Press Start 2P, VT323
+Développer et tester
 
----
+Commit et push
 
-## 📍 Roadmap
-- 🌍 2ᵉ génération après complétion de la 1ʳᵉ
-- 📱 Responsive mobile
-- 🎵 Ambiance sonore GBA
-- 🧠 IA améliorée + règles (dont `Open`)
-- 💾 Sauvegarde cloud complète avec compte
-- 🎨 Style des contours
-- 🔧 Règles à revoir complètement (de A à Z, pour repartir sur de bonnes bases)
+Ouvrir une Pull Request
 
----
+👨‍💻 Auteur
 
-## ✨ Auteur
-Projet réalisé par Jordan dans le cadre d’un entraînement personnel en JavaScript & React.
+Projet développé par GERARD Jordan
+(alias Jordybou)
